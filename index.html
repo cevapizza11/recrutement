@@ -109,7 +109,7 @@ table.pc td{padding:5px 4px;border-bottom:1px solid #242424}
 <body>
 <header>
   <img src="icon.svg" alt="">
-  <div><h1>Recrutement</h1><div class="v">Moule &amp; Smile · v.19/11/2026 16:52</div></div>
+  <div><h1>Recrutement</h1><div class="v">Moule &amp; Smile · v.19/11/2026 18:46</div></div>
   <div class="actions" id="hdrActions">
     <button class="ib" title="Tableau" onclick="vue('liste')">📋</button>
     <button class="ib" title="Ajouter une fiche" onclick="creerFiche()">＋</button>
@@ -988,10 +988,11 @@ async function creerFiche(){
   try{const j=await api('creer',{candidat:{prenom,nom,tel,postes:[]}});S.candidats.unshift(j.rec);ouvrir(j.rec.id);}catch(e){alert(e.message);}
 }
 function modaleLien(){
-  const u=urlPostuler();
+  const u='https://www.mouleandsmile.fr/recrutement';
   $('modale').innerHTML=`<div class="modale" onclick="if(event.target===this)fermer()"><div class="boite" style="max-width:460px"><div class="bt"><b>Lien de candidature</b><button class="ib" onclick="fermer()">✕</button></div><div class="bc" style="text-align:center">
-  <p>À partager sur les réseaux, Indeed, par SMS, ou à imprimer en QR code sur une affiche.</p>
-  <img src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encodeURIComponent(u)}" style="background:#fff;border-radius:10px;width:220px;height:220px" alt="QR code">
+  <p>Page recrutement du site (postes + bouton « Je postule »). À partager sur Instagram, Facebook, Indeed, par SMS. Affiche vitrine : bouton « 🖨️ Affiche vitrine » sur la page.</p>
+  <img src="https://www.mouleandsmile.fr/recrutement/qr-recrutement.png" style="background:#fff;border-radius:10px;width:220px;height:220px" alt="QR code">
+  <div class="barre-act" style="justify-content:center"><a class="btn petit" href="https://www.mouleandsmile.fr/recrutement/qr-recrutement.png" download target="_blank">⬇️ Télécharger le QR</a></div>
   <p style="word-break:break-all;color:var(--or2)">${esc(u)}</p>
   <div class="barre-act" style="justify-content:center"><button class="btn" onclick="navigator.clipboard.writeText('${u}');toast('Lien copié ✓')">📋 Copier</button><button class="btn" onclick="partagerTexte('Moule & Smile recrute pour la saison ! Postule ici : ${u}')">📤 Partager</button><a class="btn" href="${u}" target="_blank">👁️ Voir</a></div></div></div></div>`;
 }
