@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rejoins l'équipe Moule &amp; Smile</title>
+<meta name="theme-color" content="#0d0d0d">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<script src="config.js"></script>
+<style>
+:root{--noir:#0d0d0d;--carte:#181818;--ligne:#2c2c2c;--or:#d4a537;--or2:#f0c75e;--txt:#f3f0e8;--gris:#9a958a;--rouge:#e5534b;--vert:#3fb27f}
+*{box-sizing:border-box}
+body{margin:0;background:var(--noir);color:var(--txt);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding-bottom:110px}
+header{position:sticky;top:0;z-index:5;background:#000;border-bottom:1px solid var(--or);padding:10px 16px;display:flex;align-items:center;gap:10px}
+header img{width:34px;height:34px}
+header h1{font-size:17px;margin:0;color:var(--or);letter-spacing:.3px}
+header .v{margin-left:auto;font-size:11px;color:var(--gris)}
+main{max-width:640px;margin:0 auto;padding:14px}
+.intro{background:linear-gradient(135deg,#1d1708,#0d0d0d);border:1px solid #3a2f12;border-radius:14px;padding:16px;margin-bottom:14px}
+.intro b{color:var(--or2)}
+.etapes{display:flex;gap:6px;margin:6px 0 16px}
+.etapes span{flex:1;height:5px;border-radius:3px;background:var(--ligne)}
+.etapes span.on{background:var(--or)}
+.page{display:none}.page.on{display:block}
+h2{font-size:19px;color:var(--or);margin:4px 0 12px}
+.bloc{background:var(--carte);border:1px solid var(--ligne);border-radius:14px;padding:14px;margin-bottom:12px}
+label{display:block;font-size:14px;color:var(--gris);margin:10px 0 4px}
+label .ob{color:var(--or)}
+input,select,textarea{width:100%;background:#0f0f0f;border:1px solid #333;color:var(--txt);border-radius:10px;padding:12px;font-size:16px;font-family:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--or)}
+textarea{min-height:80px}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips label{margin:0;display:flex;align-items:center;gap:6px;border:1px solid #3a3a3a;border-radius:20px;padding:9px 14px;color:var(--txt);cursor:pointer}
+.chips input{width:auto;margin:0;accent-color:var(--or)}
+.chips label:has(input:checked){border-color:var(--or);background:#2a2110}
+.aide{font-size:13px;color:var(--gris);margin-top:4px}
+.alerte{background:#2b1e05;border:1px solid #7a5a12;color:#f5d58a;border-radius:10px;padding:10px 12px;font-size:14px;margin:10px 0}
+.erreur{background:#2e0f0f;border-color:#7a2020;color:#ffb3ae}
+.piece{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--ligne)}
+.piece:last-child{border-bottom:none}
+.piece .nom{flex:1;font-size:15px}
+.piece .nom small{display:block;color:var(--gris);font-size:12px}
+.piece .ok{color:var(--vert);font-size:13px}
+.piece .btn{white-space:nowrap}
+.piece input[type=file]{display:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--or);color:var(--or);background:transparent;border-radius:10px;padding:10px 14px;font-size:15px;font-weight:600;cursor:pointer}
+.btn.plein{background:var(--or);color:#111}
+.btn:disabled{opacity:.5}
+nav.bas{position:fixed;left:0;right:0;bottom:0;background:#000;border-top:1px solid var(--ligne);padding:12px 14px calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px;justify-content:center}
+nav.bas .btn{flex:1;max-width:300px;padding:14px}
+.coche{display:flex;gap:10px;align-items:flex-start;margin:10px 0;color:var(--txt);font-size:14px}
+.coche input{width:22px;height:22px;flex:none;accent-color:var(--or)}
+.recap div{padding:4px 0;border-bottom:1px dashed #2a2a2a;font-size:14px}
+.recap b{color:var(--or2)}
+.fin{text-align:center;padding:40px 10px}
+.fin .gros{font-size:60px}
+.barre{height:8px;border-radius:4px;background:#222;overflow:hidden;margin-top:12px}
+.barre div{height:100%;width:0;background:var(--or);transition:width .3s}
+.cache{display:none!important}
+.pot{position:absolute;left:-9999px}
+</style>
+</head>
+<body>
+<header>
+  <img src="icon.svg" alt="">
+  <h1>Rejoins l'équipe Moule &amp; Smile</h1>
+  <span class="v">v.19/11/2026 07:40</span>
+</header>
+<main>
+  <div id="intro" class="intro"></div>
+  <div class="etapes" id="etapes"></div>
+
+  <!-- PAGE 1 : LE POSTE -->
+  <section class="page on" data-titre="Le poste">
+    <h2>1. Le poste</h2>
+    <div class="bloc">
+      <label>Poste(s) qui t'intéressent <span class="ob">*</span></label>
+      <div class="chips" id="postes"></div>
+      <label>Type de contrat souhaité <span class="ob">*</span></label>
+      <select id="contratSouhaite"></select>
+      <div class="duo">
+        <div><label>Disponible à partir du <span class="ob">*</span></label><input type="date" id="dispoDebut"></div>
+        <div><label>Jusqu'au</label><input type="date" id="dispoFin"></div>
+      </div>
+      <label>Tes disponibilités (jours, horaires, contraintes)</label>
+      <textarea id="dispoDetail" placeholder="Ex. : tous les jours sauf le mardi, pas avant 10h…"></textarea>
+      <label>Expérience en restauration</label>
+      <select id="experience"><option value="">—</option><option>Aucune, je débute</option><option>Moins de 6 mois</option><option>6 mois à 2 ans</option><option>Plus de 2 ans</option></select>
+      <label>Raconte-nous en quelques mots (expériences, motivation)</label>
+      <textarea id="motivation"></textarea>
+    </div>
+  </section>
+
+  <!-- PAGE 2 : IDENTITÉ -->
+  <section class="page" data-titre="Identité">
+    <h2>2. Ton identité</h2>
+    <div class="bloc">
+      <label>Civilité <span class="ob">*</span></label>
+      <div class="chips"><label><input type="radio" name="civ" value="M."> M.</label><label><input type="radio" name="civ" value="Mme"> Mme</label></div>
+      <div class="duo">
+        <div><label>Nom <span class="ob">*</span></label><input id="nom" autocomplete="family-name"></div>
+        <div><label>Prénom(s) <span class="ob">*</span></label><input id="prenom" autocomplete="given-name"></div>
+      </div>
+      <label>Nom de naissance (si différent)</label><input id="nomNaissance">
+      <div class="duo">
+        <div><label>Date de naissance <span class="ob">*</span></label><input type="date" id="naissance"></div>
+        <div><label>Commune de naissance <span class="ob">*</span></label><input id="lieuNaissance"></div>
+      </div>
+      <div class="duo">
+        <div><label>Département ou pays de naissance <span class="ob">*</span></label><input id="deptNaissance" placeholder="Ex. 11 ou Maroc"></div>
+        <div><label>Nationalité <span class="ob">*</span></label><input id="nationalite" placeholder="Ex. Française"></div>
+      </div>
+      <label>Ta nationalité est… <span class="ob">*</span></label>
+      <select id="nationaliteType"><option value="">—</option><option value="fr">Française</option><option value="ue">Union européenne / Suisse / EEE</option><option value="hors_ue">Hors Union européenne</option></select>
+      <div id="blocSejour" class="cache">
+        <div class="duo">
+          <div><label>N° du titre de séjour <span class="ob">*</span></label><input id="sejourNumero"></div>
+          <div><label>Valable jusqu'au <span class="ob">*</span></label><input type="date" id="sejourFin"></div>
+        </div>
+      </div>
+      <label>Pièce d'identité fournie <span class="ob">*</span></label>
+      <select id="pieceType"><option value="cni">Carte d'identité</option><option value="passeport">Passeport</option><option value="sejour">Titre de séjour</option></select>
+      <div id="alerteMineur" class="alerte cache">Tu es mineur(e) : nous aurons besoin de l'accord de ton représentant légal (étape 4).</div>
+    </div>
+  </section>
+
+  <!-- PAGE 3 : COORDONNÉES & ADMINISTRATIF -->
+  <section class="page" data-titre="Coordonnées">
+    <h2>3. Coordonnées et infos administratives</h2>
+    <div class="bloc">
+      <label>Adresse <span class="ob">*</span></label><input id="adresse" autocomplete="street-address">
+      <div class="duo">
+        <div><label>Code postal <span class="ob">*</span></label><input id="cp" inputmode="numeric" autocomplete="postal-code"></div>
+        <div><label>Ville <span class="ob">*</span></label><input id="ville" autocomplete="address-level2"></div>
+      </div>
+      <div class="duo">
+        <div><label>Téléphone <span class="ob">*</span></label><input id="tel" type="tel" autocomplete="tel"></div>
+        <div><label>E-mail <span class="ob">*</span></label><input id="email" type="email" autocomplete="email"></div>
+      </div>
+    </div>
+    <div class="bloc">
+      <label>N° de Sécurité sociale (15 chiffres) <span class="ob">*</span></label>
+      <input id="secu" inputmode="numeric" placeholder="1 85 05 11 069 123 45">
+      <label class="coche"><input type="checkbox" id="secuAttente"> Je n'ai pas encore de numéro définitif (en cours d'attribution)</label>
+      <label>Situation actuelle</label>
+      <select id="situation"><option value="">—</option><option>Étudiant(e)</option><option>Lycéen(ne)</option><option>Demandeur d'emploi</option><option>Salarié(e) ailleurs</option><option>Autre</option></select>
+      <label>As-tu déjà une mutuelle santé obligatoire (par ton conjoint, tes parents via leur employeur, la CSS…) ?</label>
+      <select id="mutuelleDispense"><option value="non">Non / je ne sais pas</option><option value="oui">Oui, je souhaite demander une dispense</option></select>
+      <label>Comment viendras-tu au travail ?</label>
+      <select id="transport"><option value="">—</option><option>Voiture</option><option>Scooter / moto</option><option>Vélo / à pied</option><option>Bus</option><option>On me dépose</option></select>
+    </div>
+    <div class="bloc">
+      <label>Personne à prévenir en cas d'urgence <span class="ob">*</span></label>
+      <div class="duo">
+        <div><input id="urgenceNom" placeholder="Nom et lien (ex. mère)"></div>
+        <div><input id="urgenceTel" type="tel" placeholder="Téléphone"></div>
+      </div>
+      <label>Taille de t-shirt (pour ta tenue) <span class="ob">*</span></label>
+      <div class="chips" id="tailles"></div>
+    </div>
+    <div id="blocParent" class="bloc cache">
+      <h2 style="font-size:16px">Représentant légal (candidat mineur)</h2>
+      <div class="duo">
+        <div><label>Nom et prénom <span class="ob">*</span></label><input id="parentNom"></div>
+        <div><label>Lien <span class="ob">*</span></label><select id="parentLien"><option>Mère</option><option>Père</option><option>Tuteur / tutrice</option></select></div>
+      </div>
+      <div class="duo">
+        <div><label>Téléphone <span class="ob">*</span></label><input id="parentTel" type="tel"></div>
+        <div><label>E-mail</label><input id="parentEmail" type="email"></div>
+      </div>
+      <label>Adresse (si différente)</label><input id="parentAdresse">
+      <p class="aide">Ton représentant légal doit signer l'autorisation parentale. Tu peux la télécharger, l'imprimer, la faire signer et la prendre en photo à l'étape suivante.</p>
+      <button type="button" class="btn" onclick="ouvrirAutorisation()">📄 Autorisation parentale à imprimer</button>
+    </div>
+  </section>
+
+  <!-- PAGE 4 : PIÈCES -->
+  <section class="page" data-titre="Documents">
+    <h2>4. Tes documents</h2>
+    <p class="aide" style="margin-top:-6px">Prends une photo bien nette (à plat, avec de la lumière) ou choisis un PDF. Les photos sont allégées automatiquement.</p>
+    <div class="bloc" id="pieces"></div>
+  </section>
+
+  <!-- PAGE 5 : VALIDATION -->
+  <section class="page" data-titre="Envoi">
+    <h2>5. Vérifie et envoie</h2>
+    <div class="bloc recap" id="recap"></div>
+    <div class="bloc">
+      <label class="coche"><input type="checkbox" id="certif"> Je certifie que les informations fournies sont exactes.</label>
+      <label class="coche"><input type="checkbox" id="rgpd"> J'accepte que mes données et documents soient conservés par SAS La Marmite Bleue (Moule &amp; Smile) uniquement pour gérer ma candidature et, si je suis embauché(e), mon contrat. Sans suite, ils sont supprimés au bout de 2 ans maximum. Je peux demander leur suppression à tout moment.</label>
+      <input class="pot" id="pot" tabindex="-1" autocomplete="off">
+      <div id="envoiEtat"></div>
+    </div>
+  </section>
+
+  <section id="fin" class="fin cache">
+    <div class="gros">🦪</div>
+    <h2 id="finTitre">Merci, c'est envoyé !</h2>
+    <p id="finTexte">Ta candidature est bien arrivée. On te recontacte très vite.</p>
+  </section>
+</main>
+
+<nav class="bas" id="nav">
+  <button class="btn" id="btnPrec" onclick="aller(-1)">← Retour</button>
+  <button class="btn plein" id="btnSuiv" onclick="aller(1)">Suivant →</button>
+</nav>
+
+<script>
+// ---------- Config par défaut (si le script n'est pas encore relié) ----------
+let CFG = {
+  postes:['Moules','Frites','Bar','Salle','Plonge / polyvalent'],
+  contratsProposes:[{code:'cdd_saison',label:'CDD saisonnier (saison)'},{code:'cdd_ete',label:'CDD saisonnier juillet-août'},{code:'extra',label:'Extra (week-ends / renforts)'},{code:'cdi_annualise',label:'CDI annualisé'}],
+  pieces:[{key:'cv',label:'CV',req:'oui'},{key:'lettre',label:'Lettre de motivation',req:'non'},{key:'id_recto',label:"Pièce d'identité — recto",req:'oui'},{key:'id_verso',label:"Pièce d'identité — verso (pas pour un passeport)",req:'oui'},{key:'vitale',label:'Carte Vitale ou attestation de Sécurité sociale',req:'oui'},{key:'rib',label:'RIB',req:'oui'},{key:'domicile',label:'Justificatif de domicile',req:'non'},{key:'photo',label:"Photo d'identité",req:'non'},{key:'sejour',label:'Titre de séjour autorisant à travailler (recto/verso)',req:'hors_ue'},{key:'autorisation',label:'Autorisation parentale signée',req:'mineur'},{key:'id_parent',label:"Pièce d'identité du représentant légal",req:'mineur'},{key:'mutuelle',label:'Attestation de mutuelle (si demande de dispense)',req:'dispense'}],
+  accueil:"Merci de ton intérêt pour Moule & Smile ! Remplis ce formulaire et joins tes documents : on te recontacte très vite.",
+  saison:{debut:'2027-03-12',fin:'2027-10-31'}, enseigne:'Moule & Smile'
+};
+const TAILLES=['XS','S','M','L','XL','XXL','3XL'];
+const fichiers={};          // key -> {name,mime,data,label}
+let page=0, MODE='candidature', COMP=null;
+const qs=new URLSearchParams(location.search);
+const $=id=>document.getElementById(id);
+const pages=[...document.querySelectorAll('.page')];
+const apiOK=()=>typeof API_URL==='string' && API_URL.startsWith('https://');
+
+// ---------- Démarrage ----------
+(async function init(){
+  if(qs.get('id') && qs.get('t')) MODE='complement';
+  try{
+    if(apiOK()){
+      const url=API_URL+(MODE==='complement'?`?action=complement&id=${encodeURIComponent(qs.get('id'))}&t=${encodeURIComponent(qs.get('t'))}`:'?action=config');
+      const r=await (await fetch(url)).json();
+      if(r.ok){ CFG=r.config; if(MODE==='complement') COMP=r; }
+      else if(MODE==='complement'){ $('intro').innerHTML='<b>Ce lien n\'est plus valide.</b> Contacte-nous directement.'; $('nav').classList.add('cache'); pages.forEach(p=>p.classList.remove('on')); return; }
+    }
+  }catch(e){}
+  if(MODE==='complement') return initComplement();
+  $('intro').textContent=CFG.accueil;
+  $('postes').innerHTML=CFG.postes.map(p=>`<label><input type="checkbox" value="${esc(p)}"> ${esc(p)}</label>`).join('');
+  $('contratSouhaite').innerHTML='<option value="">—</option>'+CFG.contratsProposes.map(c=>`<option value="${esc(c.label)}">${esc(c.label)}</option>`).join('');
+  $('tailles').innerHTML=TAILLES.map(t=>`<label><input type="radio" name="taille" value="${t}"> ${t}</label>`).join('');
+  restaurerBrouillon();
+  document.querySelectorAll('input,select,textarea').forEach(el=>el.addEventListener('change',()=>{majConditions();sauverBrouillon();}));
+  majConditions(); dessinerEtapes(); majNav();
+})();
+
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+// ---------- Conditions (mineur, hors UE, dispense) ----------
+function age(){
+  const n=$('naissance').value; if(!n) return null;
+  const ref=$('dispoDebut').value? new Date($('dispoDebut').value): new Date();
+  const d=new Date(n); let a=ref.getFullYear()-d.getFullYear();
+  if(ref.getMonth()<d.getMonth()||(ref.getMonth()===d.getMonth()&&ref.getDate()<d.getDate())) a--;
+  return a;
+}
+function etat(){
+  const a=age();
+  return {mineur:a!==null&&a<18, horsUE:$('nationaliteType').value==='hors_ue', dispense:$('mutuelleDispense').value==='oui', passeport:$('pieceType').value==='passeport'};
+}
+function majConditions(){
+  const s=etat();
+  $('alerteMineur').classList.toggle('cache',!s.mineur);
+  $('blocParent').classList.toggle('cache',!s.mineur);
+  $('blocSejour').classList.toggle('cache',!s.horsUE);
+  dessinerPieces();
+}
+function piecesDemandees(s){
+  return CFG.pieces.filter(p=>{
+    if(p.req==='hors_ue') return s.horsUE;
+    if(p.req==='mineur') return s.mineur;
+    if(p.req==='dispense') return s.dispense;
+    return true;
+  }).map(p=>({...p, obligatoire: p.req!=='non' && !(p.key==='id_verso' && s.passeport)}));
+}
+function dessinerPieces(){
+  const s=MODE==='complement'?{mineur:COMP.mineur,horsUE:COMP.horsUE,dispense:COMP.dispense,passeport:false}:etat();
+  let liste=piecesDemandees(s);
+  if(MODE==='complement') liste=liste.filter(p=>!(COMP.docs||[]).includes(p.key)).map(p=>({...p,obligatoire:false}));
+  $('pieces').innerHTML = liste.length? liste.map(p=>`
+    <div class="piece">
+      <div class="nom">${esc(p.label)} ${p.obligatoire?'<span style="color:var(--or)">*</span>':'<small>facultatif</small>'}
+        <small id="f_${p.key}">${fichiers[p.key]?'<span class="ok">✔ '+esc(fichiers[p.key].name)+' ('+Math.round(fichiers[p.key].taille/1024)+' Ko)</span>':''}</small></div>
+      <label class="btn" style="margin:0">${fichiers[p.key]?'Changer':'📷 Ajouter'}<input type="file" accept="image/*,application/pdf" onchange="choisir(this,'${p.key}','${esc(p.label).replace(/'/g,'’')}')"></label>
+    </div>`).join('') : '<p>Tous les documents ont déjà été reçus 👍</p>';
+}
+
+// ---------- Fichiers (compression des photos) ----------
+async function choisir(inp,key,label){
+  const f=inp.files[0]; if(!f) return;
+  const zone=$('f_'+key); zone.textContent='Préparation…';
+  try{
+    let data,mime=f.type||'application/octet-stream',name=f.name;
+    if(mime.startsWith('image/')){
+      ({data,mime}=await compresser(f)); name=name.replace(/\.[^.]+$/,'')+'.jpg';
+    }else{
+      if(f.size>8*1024*1024){ alert('Fichier trop lourd (8 Mo maximum). Prends plutôt une photo.'); zone.textContent=''; return; }
+      data=await enBase64(f);
+    }
+    fichiers[key]={key,label,name,mime,data,taille:Math.round(data.length*0.75)};
+  }catch(e){ alert('Impossible de lire ce fichier. Essaie une photo.'); }
+  dessinerPieces();
+}
+function enBase64(f){return new Promise((ok,ko)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]);r.onerror=ko;r.readAsDataURL(f);});}
+function compresser(f){
+  return new Promise((ok,ko)=>{
+    const img=new Image(); const u=URL.createObjectURL(f);
+    img.onload=()=>{
+      const max=1800; let w=img.naturalWidth,h=img.naturalHeight;
+      if(Math.max(w,h)>max){const k=max/Math.max(w,h);w=Math.round(w*k);h=Math.round(h*k);}
+      const c=document.createElement('canvas');c.width=w;c.height=h;
+      const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(img,0,0,w,h);
+      URL.revokeObjectURL(u);
+      ok({data:c.toDataURL('image/jpeg',0.82).split(',')[1],mime:'image/jpeg'});
+    };
+    img.onerror=ko; img.src=u;
+  });
+}
+
+// ---------- Navigation & contrôles ----------
+function dessinerEtapes(){ $('etapes').innerHTML=pages.map((p,i)=>`<span class="${i<=page?'on':''}"></span>`).join(''); }
+function majNav(){
+  $('btnPrec').style.visibility=page===0?'hidden':'visible';
+  $('btnSuiv').textContent= page===pages.length-1 ? (MODE==='complement'?'Envoyer mes documents':'Envoyer ma candidature ✓') : 'Suivant →';
+}
+function aller(sens){
+  if(sens>0){
+    const err=verifier(page); if(err){ alert(err); return; }
+    if(page===pages.length-1) return envoyer();
+  }
+  pages[page].classList.remove('on'); page=Math.max(0,Math.min(pages.length-1,page+sens)); pages[page].classList.add('on');
+  if(page===pages.length-1 && MODE==='candidature') recap();
+  dessinerEtapes(); majNav(); window.scrollTo(0,0);
+}
+function cocheesPostes(){return [...document.querySelectorAll('#postes input:checked')].map(i=>i.value);}
+function radio(n){const r=document.querySelector(`input[name=${n}]:checked`);return r?r.value:'';}
+function secuValide(v){
+  v=v.replace(/\s/g,'').toUpperCase(); if(!/^[12378][0-9]{2}[0-9]{2}(2A|2B|[0-9]{2})[0-9]{6}[0-9]{2}$/.test(v)) return false;
+  const corps=v.slice(0,13).replace('2A','19').replace('2B','18');
+  return 97-(Number(BigInt(corps)%97n))===Number(v.slice(13));
+}
+function verifier(p){
+  if(MODE==='complement') return null;
+  const s=etat();
+  if(p===0){
+    if(!cocheesPostes().length) return 'Choisis au moins un poste.';
+    if(!$('contratSouhaite').value) return 'Choisis le type de contrat souhaité.';
+    if(!$('dispoDebut').value) return 'Indique ta date de disponibilité.';
+  }
+  if(p===1){
+    for(const [id,n] of [['nom','ton nom'],['prenom','ton prénom'],['naissance','ta date de naissance'],['lieuNaissance','ta commune de naissance'],['deptNaissance','ton département ou pays de naissance'],['nationalite','ta nationalité'],['nationaliteType','le type de nationalité']]) if(!$(id).value.trim()) return 'Indique '+n+'.';
+    if(!radio('civ')) return 'Choisis ta civilité.';
+    const a=age(); if(a!==null && a<16) return 'Il faut avoir au moins 16 ans pour travailler chez nous.';
+    if(s.horsUE && (!$('sejourNumero').value||!$('sejourFin').value)) return 'Indique le numéro et la date de fin de ton titre de séjour.';
+  }
+  if(p===2){
+    for(const [id,n] of [['adresse','ton adresse'],['cp','ton code postal'],['ville','ta ville'],['tel','ton téléphone'],['email','ton e-mail'],['urgenceNom','la personne à prévenir'],['urgenceTel','le téléphone de la personne à prévenir']]) if(!$(id).value.trim()) return 'Indique '+n+'.';
+    if(!/^\S+@\S+\.\S+$/.test($('email').value)) return 'Ton e-mail ne semble pas correct.';
+    if(!$('secuAttente').checked){
+      if(!$('secu').value.trim()) return 'Indique ton numéro de Sécurité sociale (ou coche « en cours d\'attribution »).';
+      if(!secuValide($('secu').value) && !confirm('Ton numéro de Sécurité sociale semble incorrect. Le garder quand même ?')) return 'Vérifie ton numéro de Sécurité sociale.';
+    }
+    if(!radio('taille')) return 'Choisis ta taille de t-shirt.';
+    if(s.mineur && (!$('parentNom').value.trim()||!$('parentTel').value.trim())) return 'Indique le nom et le téléphone de ton représentant légal.';
+  }
+  if(p===3){
+    const manque=piecesDemandees(s).filter(x=>x.obligatoire && !fichiers[x.key]).map(x=>'• '+x.label);
+    if(manque.length) return 'Il manque :\n'+manque.join('\n');
+  }
+  if(p===4){
+    if(!$('certif').checked||!$('rgpd').checked) return 'Coche les deux cases pour envoyer.';
+  }
+  return null;
+}
+const CHAMPS=['contratSouhaite','dispoDebut','dispoFin','dispoDetail','experience','motivation','nom','prenom','nomNaissance','naissance','lieuNaissance','deptNaissance','nationalite','nationaliteType','sejourNumero','sejourFin','pieceType','adresse','cp','ville','tel','email','secu','situation','mutuelleDispense','transport','urgenceNom','urgenceTel','parentNom','parentLien','parentTel','parentEmail','parentAdresse'];
+function collecte(){
+  const c={}; CHAMPS.forEach(k=>c[k]=$(k).value.trim());
+  c.nom=c.nom.toUpperCase(); c.civilite=radio('civ'); c.taille=radio('taille'); c.postes=cocheesPostes();
+  c.secuAttente=$('secuAttente').checked?'oui':'non'; c.secu=c.secu.replace(/\s/g,'');
+  c.mineur=etat().mineur; c.age=age();
+  return c;
+}
+function recap(){
+  const c=collecte();
+  const l=[['Postes',c.postes.join(', ')],['Contrat',c.contratSouhaite],['Disponible',fr(c.dispoDebut)+(c.dispoFin?' → '+fr(c.dispoFin):'')],['Identité',`${c.civilite} ${c.prenom} ${c.nom}, né(e) le ${fr(c.naissance)} à ${c.lieuNaissance}`],['Adresse',`${c.adresse}, ${c.cp} ${c.ville}`],['Contact',`${c.tel} — ${c.email}`],['Documents',Object.keys(fichiers).length+' fichier(s)']];
+  $('recap').innerHTML=l.map(([a,b])=>`<div><b>${a} :</b> ${esc(b)}</div>`).join('');
+}
+function fr(d){return d?d.split('-').reverse().join('/'):'';}
+
+// ---------- Envoi ----------
+async function envoyer(){
+  if(!apiOK()){ alert("L'appli n'est pas encore reliée au Drive (adresse du script manquante)."); return; }
+  if(MODE==='complement' && !Object.keys(fichiers).length){ alert('Ajoute au moins un document.'); return; }
+  const btn=$('btnSuiv'); btn.disabled=true; $('btnPrec').disabled=true;
+  $('envoiEtat').innerHTML='<p>Envoi en cours… ne ferme pas la page.</p><div class="barre"><div id="prog"></div></div>';
+  let pc=5; const t=setInterval(()=>{pc=Math.min(92,pc+3);const p=$('prog');if(p)p.style.width=pc+'%';},400);
+  try{
+    const body= MODE==='complement'
+      ? {action:'complement',id:qs.get('id'),t:qs.get('t'),fichiers:Object.values(fichiers)}
+      : {action:'candidature',candidat:collecte(),fichiers:Object.values(fichiers),piegeAbot:$('pot').value};
+    const r=await (await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)})).json();
+    clearInterval(t);
+    if(!r.ok) throw new Error(r.erreur||'Erreur');
+    localStorage.removeItem('brouillon_recrutement');
+    pages.forEach(p=>p.classList.remove('on')); $('etapes').classList.add('cache'); $('intro').classList.add('cache'); $('nav').classList.add('cache');
+    $('fin').classList.remove('cache');
+    if(MODE==='complement'){ $('finTitre').textContent='Merci, documents reçus !'; $('finTexte').textContent='Tes documents sont bien arrivés.'; }
+  }catch(e){
+    clearInterval(t);
+    $('envoiEtat').innerHTML=`<div class="alerte erreur">L'envoi n'a pas marché (${esc(e.message)}). Vérifie ta connexion et réessaie.</div>`;
+    btn.disabled=false; $('btnPrec').disabled=false;
+  }
+}
+
+// ---------- Mode complément (lien envoyé par le recruteur) ----------
+function initComplement(){
+  $('intro').innerHTML=`Bonjour <b>${esc(COMP.prenom)}</b> ! Il nous manque encore quelques documents pour ton dossier. Ajoute-les ici puis appuie sur « Envoyer ».`;
+  pages.forEach(p=>p.classList.remove('on'));
+  page=pages.length-1; pages[3].classList.add('on'); pages[3].querySelector('h2').textContent='Documents à compléter';
+  // en mode complément on n'affiche que la page Documents
+  pages.splice(0,pages.length,pages[3]); page=0;
+  $('etapes').classList.add('cache'); dessinerPieces(); majNav();
+}
+
+// ---------- Brouillon (sans les fichiers) ----------
+function sauverBrouillon(){ try{ const c=collecte(); localStorage.setItem('brouillon_recrutement',JSON.stringify(c)); }catch(e){} }
+function restaurerBrouillon(){
+  try{
+    const c=JSON.parse(localStorage.getItem('brouillon_recrutement')||'null'); if(!c) return;
+    CHAMPS.forEach(k=>{ if(c[k]!==undefined && $(k)) $(k).value=c[k]; });
+    (c.postes||[]).forEach(p=>{const i=[...document.querySelectorAll('#postes input')].find(x=>x.value===p); if(i) i.checked=true;});
+    if(c.civilite){const r=document.querySelector(`input[name=civ][value="${c.civilite}"]`); if(r) r.checked=true;}
+    if(c.taille){const r=document.querySelector(`input[name=taille][value="${c.taille}"]`); if(r) r.checked=true;}
+    $('secuAttente').checked=c.secuAttente==='oui';
+  }catch(e){}
+}
+
+// ---------- Autorisation parentale imprimable ----------
+function ouvrirAutorisation(){
+  const c=collecte();
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Autorisation parentale</title>
+  <style>body{font:14px/1.6 Georgia,serif;max-width:700px;margin:40px auto;padding:0 20px;color:#111}h1{font-size:20px;text-align:center}.l{border-bottom:1px solid #000;display:inline-block;min-width:220px}@media print{button{display:none}}</style></head><body>
+  <h1>AUTORISATION PARENTALE DE TRAVAIL<br><small>pour un(e) salarié(e) mineur(e)</small></h1>
+  <p>Je soussigné(e) <span class="l">${esc(c.parentNom)}</span>, agissant en qualité de <span class="l">${esc(c.parentLien)}</span> et représentant légal de :</p>
+  <p><b>${esc(c.prenom)} ${esc(c.nom)}</b>, né(e) le <span class="l">${fr(c.naissance)}</span> à <span class="l">${esc(c.lieuNaissance)}</span>,</p>
+  <p>demeurant <span class="l">${esc(c.parentAdresse||((c.adresse||'')+' '+(c.cp||'')+' '+(c.ville||'')))}</span>,</p>
+  <p>l'autorise à conclure un contrat de travail avec la <b>SAS LA MARMITE BLEUE</b> (enseigne Moule &amp; Smile, 1 boulevard de la Douane, 11560 Saint-Pierre-la-Mer), en qualité d'équipier(ère) de restauration, pour la période du <span class="l">${fr(c.dispoDebut)}</span> au <span class="l">${fr(c.dispoFin)}</span>.</p>
+  <p>Je reconnais avoir été informé(e) des conditions de travail applicables aux jeunes travailleurs (durée maximale du travail, repos, horaires).</p>
+  <p>Je joins une copie de ma pièce d'identité.</p>
+  <p style="margin-top:30px">Fait à <span class="l"></span>, le <span class="l"></span></p>
+  <p style="margin-top:20px">Signature du représentant légal<br>(précédée de la mention « Bon pour autorisation »)</p><br><br><br>
+  <button onclick="print()">🖨️ Imprimer</button></body></html>`);
+  w.document.close();
+}
+</script>
+</body>
+</html>

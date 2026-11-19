@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Recrutement — Moule &amp; Smile</title>
+<meta name="theme-color" content="#0d0d0d">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script src="config.js"></script>
+<script src="contrats.js"></script>
+<style>
+:root{--noir:#0d0d0d;--carte:#171717;--carte2:#1f1f1f;--ligne:#2c2c2c;--or:#d4a537;--or2:#f0c75e;--txt:#f3f0e8;--gris:#9a958a;--rouge:#e5534b;--vert:#3fb27f;--bleu:#5aa1e3;--orange:#e8963a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--noir);color:var(--txt);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+header{position:sticky;top:0;z-index:20;background:#000;border-bottom:1px solid var(--or);padding:8px 12px;display:flex;align-items:center;gap:8px}
+header img{width:30px;height:30px}
+header h1{font-size:16px;margin:0;color:var(--or)}
+header .v{font-size:11px;color:var(--gris)}
+header .actions{margin-left:auto;display:flex;gap:6px}
+.ib{background:#1a1a1a;border:1px solid #333;color:var(--txt);border-radius:9px;padding:7px 10px;font-size:15px;cursor:pointer}
+main{max-width:980px;margin:0 auto;padding:12px}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--or);color:var(--or);background:transparent;border-radius:9px;padding:8px 12px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none}
+.btn.plein{background:var(--or);color:#111}
+.btn.rouge{border-color:var(--rouge);color:var(--rouge)}
+.btn.petit{padding:5px 9px;font-size:13px}
+.btn:disabled{opacity:.45}
+input,select,textarea{width:100%;background:#0f0f0f;border:1px solid #333;color:var(--txt);border-radius:9px;padding:9px 10px;font-size:15px;font-family:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--or)}
+input[type=checkbox]{width:20px;height:20px;accent-color:var(--or)}
+label.l{display:block;font-size:12.5px;color:var(--gris);margin:8px 0 3px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+@media(max-width:600px){.g3{grid-template-columns:1fr 1fr}}
+.carte{background:var(--carte);border:1px solid var(--ligne);border-radius:13px;padding:12px;margin-bottom:10px}
+.cache{display:none!important}
+.badge{display:inline-block;font-size:11.5px;border-radius:20px;padding:2px 8px;margin:2px 3px 0 0;background:#262626;color:var(--gris);white-space:nowrap}
+.badge.or{background:#2b2210;color:var(--or2)}
+.badge.rouge{background:#3a1414;color:#ff9b94}
+.badge.vert{background:#0f2e20;color:#7fdcb0}
+.badge.bleu{background:#11263a;color:#9ccaf3}
+.badge.orange{background:#3a250e;color:#f5b672}
+/* tableau de bord */
+.compteurs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px}
+.compteurs button{flex:none;background:var(--carte);border:1px solid var(--ligne);color:var(--txt);border-radius:11px;padding:8px 10px;min-width:92px;text-align:left;cursor:pointer}
+.compteurs button b{display:block;font-size:20px;color:var(--or)}
+.compteurs button span{font-size:11.5px;color:var(--gris)}
+.compteurs button.on{border-color:var(--or);background:#211a09}
+.cand{display:flex;gap:12px;align-items:center;cursor:pointer}
+.cand .av{width:42px;height:42px;border-radius:50%;background:#2b2210;color:var(--or);display:flex;align-items:center;justify-content:center;font-weight:700;flex:none}
+.cand .info{flex:1;min-width:0}
+.cand .nom{font-weight:700}
+.cand .sous{font-size:12.5px;color:var(--gris)}
+.cand .etp{font-size:12px;color:var(--or);text-align:right;flex:none}
+/* fiche */
+.tete{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.tete h2{margin:0;font-size:20px}
+.contacts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.stepper{display:flex;gap:4px;overflow-x:auto;margin:12px 0 6px;padding-bottom:4px}
+.stepper div{flex:1;min-width:80px;text-align:center;font-size:11px;color:var(--gris);padding-top:6px;border-top:4px solid #2c2c2c;cursor:pointer}
+.stepper div.fait{border-color:#8a6c20;color:var(--or2)}
+.stepper div.cour{border-color:var(--or);color:var(--or);font-weight:700}
+details.etape{background:var(--carte);border:1px solid var(--ligne);border-radius:13px;margin-bottom:10px}
+details.etape>summary{list-style:none;padding:12px;display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:700}
+details.etape>summary::-webkit-details-marker{display:none}
+details.etape>summary .n{width:26px;height:26px;border-radius:50%;background:#262626;color:var(--gris);display:flex;align-items:center;justify-content:center;font-size:13px;flex:none}
+details.etape.fait>summary .n{background:#8a6c20;color:#111}
+details.etape.cour{border-color:var(--or)}
+details.etape.cour>summary .n{background:var(--or);color:#111}
+details.etape .corps{padding:0 12px 12px}
+.check{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #242424}
+.check:last-child{border-bottom:none}
+.check .t{flex:1}
+.check small{color:var(--gris);display:block}
+.doc{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #242424;font-size:14px}
+.doc a{color:var(--or2);text-decoration:none;flex:1}
+.doc.manque{color:#ff9b94}
+.alerte{background:#2b1e05;border:1px solid #7a5a12;color:#f5d58a;border-radius:10px;padding:9px 11px;font-size:13.5px;margin:8px 0}
+.alerte.rouge{background:#2e0f0f;border-color:#7a2020;color:#ffb3ae}
+.alerte.info{background:#0f2133;border-color:#22507a;color:#b7d8f7}
+.note{display:flex;align-items:center;gap:8px;margin:5px 0}
+.note span{flex:1;font-size:14px}
+.note .et{display:flex;gap:3px}
+.note .et button{width:30px;height:30px;border-radius:7px;border:1px solid #333;background:#111;color:var(--gris);cursor:pointer}
+.note .et button.on{background:var(--or);color:#111;border-color:var(--or)}
+.journal div{font-size:12.5px;color:var(--gris);padding:3px 0;border-bottom:1px dashed #262626}
+.barre-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+/* modale */
+.modale{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:50;display:flex;align-items:center;justify-content:center;padding:10px}
+.modale .boite{background:var(--carte);border:1px solid var(--or);border-radius:14px;width:100%;max-width:860px;max-height:94vh;display:flex;flex-direction:column}
+.modale .bt{padding:10px 12px;border-bottom:1px solid var(--ligne);display:flex;align-items:center;gap:8px}
+.modale .bt b{flex:1;color:var(--or)}
+.modale .bc{padding:12px;overflow:auto;flex:1}
+.modale iframe{width:100%;height:62vh;border:none;background:#fff;border-radius:8px}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#222;border:1px solid var(--or);color:var(--txt);padding:9px 16px;border-radius:20px;z-index:60;font-size:14px}
+.login{max-width:420px;margin:60px auto}
+table.pc{width:100%;border-collapse:collapse;font-size:13.5px}
+table.pc td{padding:5px 4px;border-bottom:1px solid #242424}
+.regles li{margin:4px 0}
+.vide{text-align:center;color:var(--gris);padding:30px}
+</style>
+</head>
+<body>
+<header>
+  <img src="icon.svg" alt="">
+  <div><h1>Recrutement</h1><div class="v">Moule &amp; Smile · v.19/11/2026 07:40</div></div>
+  <div class="actions" id="hdrActions">
+    <button class="ib" title="Tableau" onclick="vue('liste')">📋</button>
+    <button class="ib" title="Ajouter une fiche" onclick="creerFiche()">＋</button>
+    <button class="ib" title="Lien candidat" onclick="modaleLien()">🔗</button>
+    <button class="ib" title="Réglages" onclick="vue('reglages')">⚙️</button>
+    <button class="ib" title="Actualiser" onclick="charger()">↻</button>
+  </div>
+</header>
+<main id="app"></main>
+<div id="modale"></div>
+
+<script>
+// =====================================================================
+//  ÉTAT
+// =====================================================================
+const ETAPES=[
+  {k:'recu',n:'Candidature reçue',c:'Reçue'},
+  {k:'contact',n:'Prise de contact',c:'Contact'},
+  {k:'entretien',n:'Entretien',c:'Entretien'},
+  {k:'validation',n:'Validation',c:'Validation'},
+  {k:'contrat',n:'Contrat',c:'Contrat'},
+  {k:'tenue',n:'Tenue donnée',c:'Tenue'},
+  {k:'demarrage',n:'Démarrage',c:'Démarrage'},
+  {k:'enposte',n:'En poste',c:'En poste'}
+];
+const IDX=Object.fromEntries(ETAPES.map((e,i)=>[e.k,i]));
+const GRILLE=[['presentation','Présentation / ponctualité'],['motivation','Motivation'],['experience','Expérience'],['dispo','Disponibilités'],['equipe','Esprit d\'équipe'],['rush','Résistance au rush']];
+const CHECK_DEMARRAGE=[['accueil','Accueil et visite du restaurant'],['livret','Livret d\'accueil / règles de la maison remis'],['hygiene','Formation hygiène / HACCP de base'],['securite','Consignes de sécurité et plans d\'évacuation'],['pointeuse','Compte créé dans la Pointeuse'],['planning','Ajouté(e) dans Planning & RH'],['caisse','Accès caisse / appli commande si besoin']];
+const ARTICLES_TENUE=['T-shirt Moule & Smile','Casquette','Tablier'];
+let S={cle:localStorage.getItem('rec_cle')||'',candidats:[],config:null,sheetUrl:'',driveUrl:'',vue:'liste',filtre:'actifs',recherche:'',id:null,demo:false};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fr=d=>d?String(d).slice(0,10).split('-').reverse().join('/'):'';
+const frH=d=>d?fr(d)+(String(d).length>10?' '+String(d).slice(11,16):''):'';
+const auj=()=>new Date().toISOString().slice(0,10);
+const apiOK=()=>typeof API_URL==='string'&&API_URL.startsWith('https://');
+function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2300);}
+const cur=()=>S.candidats.find(c=>c.id===S.id);
+
+// =====================================================================
+//  API
+// =====================================================================
+async function api(action,data={}){
+  if(S.demo) return demoApi(action,data);
+  const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,cle:S.cle,...data})});
+  const j=await r.json();
+  if(!j.ok) throw new Error(j.erreur||'Erreur');
+  return j;
+}
+async function charger(){
+  if(!apiOK()){ S.demo=true; demoInit(); return rendu(); }
+  if(!S.cle) return ecranLogin();
+  $('app').innerHTML='<div class="vide">Chargement…</div>';
+  try{
+    const j=await api('liste');
+    S.candidats=j.candidats; S.config=j.config; S.sheetUrl=j.sheetUrl; S.driveUrl=j.driveUrl;
+    rendu();
+  }catch(e){
+    if(/Clé/.test(e.message)){ localStorage.removeItem('rec_cle'); S.cle=''; return ecranLogin('Clé incorrecte.'); }
+    $('app').innerHTML=`<div class="alerte rouge">Impossible de charger : ${esc(e.message)}</div><button class="btn" onclick="charger()">Réessayer</button>`;
+  }
+}
+function ecranLogin(msg){
+  $('app').innerHTML=`<div class="login carte"><h2 style="color:var(--or);margin-top:0">Connexion</h2>
+  <p>Tape la clé admin reçue par mail lors de l'installation du script Google.</p>
+  ${msg?`<div class="alerte rouge">${esc(msg)}</div>`:''}
+  <input id="cleIn" placeholder="Clé admin" autocapitalize="characters" style="text-transform:uppercase">
+  <div class="barre-act"><button class="btn plein" onclick="S.cle=$('cleIn').value.trim().toUpperCase();localStorage.setItem('rec_cle',S.cle);charger()">Entrer</button></div></div>`;
+}
+let minuteur=null;
+function sauver(){
+  clearTimeout(minuteur);
+  minuteur=setTimeout(async()=>{
+    const r=cur(); if(!r) return;
+    try{ await api('enregistrer',{rec:r}); toast('Enregistré ✓'); }catch(e){ toast('⚠️ '+e.message); }
+  },700);
+}
+
+// =====================================================================
+//  RÈGLES / ALERTES
+// =====================================================================
+function cfg(){return S.config||{};}
+function piecesRequises(r){
+  const c=r.candidat||{}, s={mineur:!!c.mineur,horsUE:c.nationaliteType==='hors_ue',dispense:c.mutuelleDispense==='oui',passeport:c.pieceType==='passeport'};
+  return (cfg().pieces||[]).filter(p=>{
+    if(p.req==='non') return false;
+    if(p.req==='hors_ue') return s.horsUE; if(p.req==='mineur') return s.mineur; if(p.req==='dispense') return s.dispense;
+    if(p.key==='id_verso'&&s.passeport) return false;
+    return true;
+  });
+}
+function piecesManquantes(r){const ks=(r.docs||[]).map(d=>d.key);return piecesRequises(r).filter(p=>!ks.includes(p.key));}
+function heuresDepuis(iso){return (Date.now()-new Date(iso).getTime())/3600000;}
+function joursAvant(iso){return Math.ceil((new Date(iso+'T00:00:00')-new Date(auj()+'T00:00:00'))/86400000);}
+function joursOuvrablesApres(iso,n){let d=new Date(iso+'T00:00:00'),k=0;while(k<n){d.setDate(d.getDate()+1);if(d.getDay()!==0)k++;}return d.toISOString().slice(0,10);}
+function alertes(r){
+  const A=[], s=r.suivi||{}, ct=s.contrat||{}, c=r.candidat||{}, se=cfg().seuils||{};
+  const v={...(s.validation||{})};
+  if(v.type==='extra'){const ms=(v.missions||[]).filter(m=>m.date).map(m=>m.date).sort();if(ms.length){v.debut=ms[0];v.fin=ms.at(-1);}}
+  if(r.statut!=='en_cours') return A;
+  const i=IDX[r.etape];
+  if(r.etape==='recu' && heuresDepuis(r.cree)>(se.contactHeures||48)) A.push(['rouge',`À contacter (plus de ${se.contactHeures||48} h)`]);
+  const e=s.entretien||{};
+  if(e.date && e.date.slice(0,10)===auj()) A.push(['bleu','Entretien aujourd\'hui '+e.date.slice(11,16)]);
+  if(i<=IDX.validation && e.date && v.decision!=='retenu' && heuresDepuis(e.date)>24*(se.decisionJours||3)) A.push(['orange',`Décision en attente (+${se.decisionJours||3} j)`]);
+  const m=piecesManquantes(r); if(m.length) A.push(['orange',m.length+' pièce(s) manquante(s)']);
+  if(v.decision==='retenu' && v.debut && i<IDX.demarrage){
+    const j=joursAvant(v.debut);
+    if(!ct.dpae && j<=(se.dpaeJours??1)) A.push(['rouge',j<0?'DPAE non faite — déjà démarré !':'DPAE à faire avant le '+fr(v.debut)]);
+    if(!ct.signe && v.type!=='extra' && j<=2) A.push(['rouge','Contrat non signé — démarrage le '+fr(v.debut)]);
+    if(!ct.signe && v.type==='extra'){ const lim=joursOuvrablesApres(v.debut,se.contratExtraJours||2); if(auj()>=v.debut) A.push([auj()>lim?'rouge':'orange','Contrat d\'extra à faire signer avant le '+fr(lim)]); }
+  }
+  if(c.nationaliteType==='hors_ue' && c.sejourFin){
+    const fin=v.fin||v.debut||auj();
+    if(c.sejourFin<fin || joursAvant(c.sejourFin)<30) A.push(['rouge','Titre de séjour : fin le '+fr(c.sejourFin)]);
+  }
+  if(c.mineur) A.push(['orange','Mineur']);
+  return A;
+}
+
+// =====================================================================
+//  VUES
+// =====================================================================
+function vue(v){S.vue=v;rendu();window.scrollTo(0,0);}
+function rendu(){
+  if(S.vue==='fiche'&&cur()) return renduFiche();
+  if(S.vue==='reglages') return renduReglages();
+  S.vue='liste'; renduListe();
+}
+function bandeauDemo(){return S.demo?`<div class="alerte info">Mode démonstration : l'appli n'est pas encore reliée au script Google (adresse à mettre dans config.js). Les données affichées sont fictives et rien n'est enregistré.</div>`:'';}
+
+// ---------- LISTE ----------
+function renduListe(){
+  const L=S.candidats;
+  const compte=k=>L.filter(r=>r.statut==='en_cours'&&r.etape===k).length;
+  const nbAl=L.filter(r=>alertes(r).some(a=>a[0]==='rouge')).length;
+  const filtres=[['actifs','En cours',L.filter(r=>r.statut==='en_cours'&&r.etape!=='enposte').length],['alertes','⚠️ Urgent',nbAl],...ETAPES.map(e=>[e.k,e.c,compte(e.k)]),['vivier','Vivier',L.filter(r=>r.statut==='vivier').length],['refuse','Refusés / désistés',L.filter(r=>r.statut==='refuse'||r.statut==='desiste').length]];
+  let liste=L.filter(r=>{
+    if(S.filtre==='actifs') return r.statut==='en_cours'&&r.etape!=='enposte';
+    if(S.filtre==='alertes') return alertes(r).some(a=>a[0]==='rouge');
+    if(S.filtre==='vivier') return r.statut==='vivier';
+    if(S.filtre==='refuse') return r.statut==='refuse'||r.statut==='desiste';
+    return r.statut==='en_cours'&&r.etape===S.filtre;
+  });
+  const q=S.recherche.toLowerCase();
+  if(q) liste=L.filter(r=>((r.candidat.nom||'')+' '+(r.candidat.prenom||'')+' '+(r.candidat.tel||'')).toLowerCase().includes(q));
+  liste.sort((a,b)=>alertes(b).filter(x=>x[0]==='rouge').length-alertes(a).filter(x=>x[0]==='rouge').length || (b.cree||'').localeCompare(a.cree||''));
+  $('app').innerHTML=bandeauDemo()+`
+  <div class="compteurs">${filtres.map(([k,n,v])=>`<button class="${S.filtre===k&&!q?'on':''}" onclick="S.filtre='${k}';S.recherche='';renduListe()"><b>${v}</b><span>${n}</span></button>`).join('')}</div>
+  <input placeholder="🔎 Rechercher un nom, un téléphone…" value="${esc(S.recherche)}" oninput="S.recherche=this.value;clearTimeout(window._rt);window._rt=setTimeout(()=>{renduListe();const i=document.querySelector('main input');i.focus();i.setSelectionRange(i.value.length,i.value.length)},250)" style="margin-bottom:10px">
+  ${liste.length?liste.map(carteCandidat).join(''):'<div class="vide">Aucun candidat ici.</div>'}`;
+}
+function carteCandidat(r){
+  const c=r.candidat, v=(r.suivi||{}).validation||{};
+  const sous=[(c.postes||[]).join(', '), v.decision==='retenu'&&v.type?TYPES_CONTRAT[v.type].court:c.contratSouhaite, c.dispoDebut?'dispo '+fr(c.dispoDebut):''].filter(Boolean).join(' · ');
+  const st=r.statut==='en_cours'?ETAPES[IDX[r.etape]].c:({vivier:'Vivier',refuse:'Refusé',desiste:'Désisté'}[r.statut]);
+  return `<div class="carte cand" onclick="ouvrir('${r.id}')">
+    <div class="av">${esc((c.prenom||'?')[0]+(c.nom||'?')[0])}</div>
+    <div class="info"><div class="nom">${esc(c.prenom)} ${esc(c.nom)}${c.age?` <span class="badge">${c.age} ans</span>`:''}</div>
+      <div class="sous">${esc(sous)}</div>
+      <div>${alertes(r).map(a=>`<span class="badge ${a[0]}">${esc(a[1])}</span>`).join('')}</div></div>
+    <div class="etp">${esc(st)}<br><span style="color:var(--gris)">${fr(r.cree)}</span></div></div>`;
+}
+function ouvrir(id){S.id=id;vue('fiche');}
+
+// ---------- FICHE ----------
+function get(o,p){return p.split('.').reduce((a,k)=>a==null?undefined:a[k],o);}
+function set(o,p,v){const ks=p.split('.');let a=o;ks.slice(0,-1).forEach(k=>{if(a[k]==null||typeof a[k]!=='object')a[k]={};a=a[k];});a[ks.at(-1)]=v;}
+function champ(lbl,p,type='text',opts){return '<div>'+champBrut(lbl,p,type,opts)+'</div>';}
+function champBrut(lbl,p,type='text',opts){
+  const v=get(cur(),p)??'';
+  if(type==='select') return `<label class="l">${lbl}</label><select data-p="${p}"${opts.rerender?' data-r="1"':''}>${opts.choix.map(([k,n])=>`<option value="${esc(k)}" ${String(v)===String(k)?'selected':''}>${esc(n)}</option>`).join('')}</select>`;
+  if(type==='textarea') return `<label class="l">${lbl}</label><textarea data-p="${p}" rows="3">${esc(v)}</textarea>`;
+  return `<label class="l">${lbl}</label><input type="${type}" data-p="${p}" value="${esc(v)}"${opts&&opts.rerender?' data-r="1"':''}${opts&&opts.step?` step="${opts.step}"`:''}>`;
+}
+function caseC(lbl,p,sous){
+  const v=get(cur(),p);
+  return `<label class="check"><input type="checkbox" data-p="${p}" data-r="1" ${v?'checked':''}><span class="t">${lbl}${sous?`<small>${sous}</small>`:''}</span>${v&&typeof v==='string'?`<span class="badge vert">${fr(v)}</span>`:''}</label>`;
+}
+function journal(t){const r=cur();r.journal=r.journal||[];r.journal.push({d:new Date().toISOString().slice(0,19),t});}
+function lierChamps(){
+  document.querySelectorAll('#app [data-p]').forEach(el=>{
+    el.addEventListener('change',()=>{
+      const r=cur(); let v;
+      if(el.type==='checkbox') v=el.checked?auj():'';
+      else if(el.type==='number') v=el.value===''?'':Number(el.value);
+      else v=el.value;
+      set(r,el.dataset.p,v);
+      if(el.dataset.p==='candidat.naissance') majAge(r);
+      sauver();
+      if(el.dataset.r) { const y=window.scrollY; renduFiche(); window.scrollTo(0,y); }
+    });
+  });
+}
+function majAge(r){
+  const c=r.candidat; if(!c.naissance) return;
+  const ref=new Date((r.suivi?.validation?.debut)||c.dispoDebut||auj()), d=new Date(c.naissance);
+  let a=ref.getFullYear()-d.getFullYear(); if(ref.getMonth()<d.getMonth()||(ref.getMonth()===d.getMonth()&&ref.getDate()<d.getDate()))a--;
+  c.age=a; c.mineur=a<18;
+}
+function telIntl(t){t=String(t||'').replace(/[^\d+]/g,'');if(t.startsWith('0'))t='+33'+t.slice(1);return t;}
+function liens(r,texte){
+  const t=telIntl(r.candidat.tel), m=encodeURIComponent(texte||'');
+  return {sms:`sms:${t}${texte?'&body='+m:''}`, wa:`https://wa.me/${t.replace('+','')}${texte?'?text='+m:''}`, mail:`mailto:${r.candidat.email||''}?subject=${encodeURIComponent('Moule & Smile — ta candidature')}&body=${m}`};
+}
+function signature(){return '\n\nThomas MARTIN\n06 63 09 74 82';}
+function messages(r){
+  const c=r.candidat, s=r.suivi||{}, e=s.entretien||{}, v=s.validation||{}, d=s.demarrage||{};
+  const lienComp=urlPostuler()+`?id=${r.id}&t=${r.jeton||''}`;
+  return [
+    ['Proposer un entretien',`Bonjour ${c.prenom}, c'est Thomas de Moule & Smile. Merci pour ta candidature ! Es-tu disponible pour un entretien ${e.date?'le '+fr(e.date)+' à '+e.date.slice(11,16):'cette semaine'} au restaurant (1 boulevard de la Douane, Saint-Pierre-la-Mer) ?`+signature()],
+    ['Pièces manquantes',`Bonjour ${c.prenom}, il manque encore quelques documents pour ton dossier Moule & Smile (${piecesManquantes(r).map(p=>p.label).join(', ')||'…'}). Tu peux les ajouter ici : ${lienComp}`+signature()],
+    ['Bonne nouvelle (retenu)',`Bonjour ${c.prenom}, bonne nouvelle : tu es retenu(e) pour rejoindre l'équipe Moule & Smile${v.debut?' à partir du '+fr(v.debut):''} ! Je te recontacte pour la signature du contrat.`+signature()],
+    ['Réponse négative',`Bonjour ${c.prenom}, merci pour ta candidature et le temps accordé. Nous ne pouvons malheureusement pas donner une suite favorable cette fois-ci, mais nous gardons ton profil si un poste se libère. Bonne continuation !`+signature()],
+    ['Premier jour',`Bonjour ${c.prenom}, ton premier jour chez Moule & Smile : le ${fr(d.date||v.debut)}${d.heure?' à '+d.heure:''}, au 1 boulevard de la Douane à Saint-Pierre-la-Mer. Ta tenue t'attend. À très vite !`+signature()]
+  ];
+}
+function urlPostuler(){return location.origin+location.pathname.replace(/[^/]*$/,'')+'postuler.html';}
+
+function renduFiche(){
+  const r=cur(); if(!r) return vue('liste');
+  r.suivi=r.suivi||{};
+  const c=r.candidat, i=IDX[r.etape], s=r.suivi, L=liens(r);
+  const al=alertes(r);
+  let h=bandeauDemo()+`<button class="btn petit" onclick="vue('liste')">← Tableau</button>
+  <div class="carte" style="margin-top:10px">
+    <div class="tete"><div class="cand"><div class="av">${esc((c.prenom||'?')[0]+(c.nom||'?')[0])}</div></div>
+      <div style="flex:1"><h2>${esc(c.prenom)} ${esc(c.nom)}</h2>
+      <div class="sous" style="color:var(--gris);font-size:13px">${esc((c.postes||[]).join(', '))} · souhaite : ${esc(c.contratSouhaite||'—')} · ${c.age?c.age+' ans':''}</div></div>
+      <select style="width:auto" onchange="changerStatut(this.value)">${[['en_cours','En cours'],['vivier','Vivier'],['refuse','Refusé'],['desiste','Désisté']].map(([k,n])=>`<option value="${k}" ${r.statut===k?'selected':''}>${n}</option>`).join('')}</select></div>
+    <div class="contacts">
+      <a class="btn petit" href="tel:${telIntl(c.tel)}">📞 Appeler</a>
+      <a class="btn petit" href="${L.sms}">💬 SMS</a>
+      <a class="btn petit" href="${L.wa}" target="_blank">🟢 WhatsApp</a>
+      ${c.email?`<a class="btn petit" href="${L.mail}">✉️ Mail</a>`:''}
+      ${r.dossierUrl?`<a class="btn petit" href="${r.dossierUrl}" target="_blank">📁 Dossier Drive</a>`:''}
+      <button class="btn petit" onclick="modaleMessages()">✍️ Messages types</button>
+    </div>
+    <div>${al.map(a=>`<span class="badge ${a[0]}">${esc(a[1])}</span>`).join('')}</div>
+    <div class="stepper">${ETAPES.map((e,k)=>`<div class="${k<i?'fait':k===i?'cour':''}" onclick="document.getElementById('et_${e.k}')?.setAttribute('open','');document.getElementById('et_${e.k}')?.scrollIntoView({behavior:'smooth'})">${e.c}</div>`).join('')}</div>
+  </div>`;
+  h+=blocEtape('recu','1','Candidature et documents',etapeCandidature(r));
+  h+=blocEtape('contact','2','Prise de contact',etapeContact(r));
+  h+=blocEtape('entretien','3','Entretien',etapeEntretien(r));
+  h+=blocEtape('validation','4','Validation',etapeValidation(r));
+  h+=blocEtape('contrat','5','Contrat et formalités',etapeContrat(r));
+  h+=blocEtape('tenue','6','Tenue donnée',etapeTenue(r));
+  h+=blocEtape('demarrage','7','Démarrage de l\'équipier',etapeDemarrage(r));
+  h+=`<div class="carte"><b style="color:var(--or)">Notes libres</b>${champ('','suivi.notes','textarea')}</div>
+  <div class="carte journal"><b style="color:var(--or)">Historique</b>${(r.journal||[]).slice().reverse().map(j=>`<div>${frH(j.d)} — ${esc(j.t)}</div>`).join('')}</div>
+  <div class="barre-act" style="margin-bottom:30px"><button class="btn petit" onclick="copierPlanning()">📋 Copier la fiche pour Planning &amp; RH</button><button class="btn petit rouge" onclick="supprimer()">🗑️ Supprimer la fiche</button></div>`;
+  $('app').innerHTML=h; lierChamps();
+}
+function blocEtape(k,n,titre,corps){
+  const r=cur(), i=IDX[r.etape], j=IDX[k];
+  const cl=j<i?'fait':j===i?'cour':'';
+  const ouvert=j===i||(k==='recu'&&i===0);
+  return `<details class="etape ${cl}" id="et_${k}" ${ouvert?'open':''}><summary><span class="n">${j<i?'✓':n}</span><span style="flex:1">${titre}</span>${j<i?'<span class="badge vert">fait</span>':j===i?'<span class="badge or">en cours</span>':''}</summary><div class="corps">${corps}${j===i&&r.statut==='en_cours'&&k!=='enposte'?boutonSuivant(k):''}</div></details>`;
+}
+function conditions(k,r){
+  const s=r.suivi||{}, v=s.validation||{}, ct=s.contrat||{};
+  const manque=[];
+  if(k==='recu'){}
+  if(k==='contact'&&!s.contact?.date) manque.push('date du contact');
+  if(k==='entretien'&&!s.entretien?.date) manque.push('date de l\'entretien');
+  if(k==='validation'){ if(v.decision!=='retenu') manque.push('décision « Retenu »'); if(!v.type) manque.push('type de contrat'); if(!v.debut) manque.push('date de début'); if(v.type!=='cdi_annualise'&&!v.fin) manque.push('date de fin'); if(!v.taux) manque.push('taux horaire'); }
+  if(k==='contrat'){ if(!(r.contrats||[]).some(x=>x.type===v.type)) manque.push('contrat enregistré en PDF'); if(!ct.signe) manque.push('contrat signé'); if(!ct.dpae) manque.push('DPAE'); if(!ct.mutuelle) manque.push('mutuelle (affiliation ou dispense)'); if(r.candidat.mineur&&!(r.docs||[]).some(d=>d.key==='autorisation')) manque.push('autorisation parentale'); }
+  if(k==='tenue'&&!s.tenue?.date) manque.push('date de remise');
+  if(k==='demarrage'){ if(!s.demarrage?.date) manque.push('date du 1er jour'); const nb=CHECK_DEMARRAGE.filter(([c])=>!s.demarrage?.checks?.[c]).length; if(nb) manque.push(nb+' point(s) de la check-list'); }
+  return manque;
+}
+function boutonSuivant(k){
+  const r=cur(), m=conditions(k,r), nx=ETAPES[IDX[k]+1];
+  return `<div class="barre-act">${m.length?`<div class="alerte" style="width:100%">Pour passer à « ${nx.n} », il manque : ${m.map(esc).join(', ')}.</div>`:''}
+  <button class="btn ${m.length?'':'plein'}" onclick="avancer('${k}')">Passer à « ${nx.n} » →</button>
+  ${IDX[k]>0?`<button class="btn petit" onclick="reculer()">↩︎ Revenir en arrière</button>`:''}</div>`;
+}
+function avancer(k){
+  const r=cur(), m=conditions(k,r);
+  if(m.length && !confirm('Il manque : '+m.join(', ')+'.\nPasser quand même à l\'étape suivante ?')) return;
+  r.etape=ETAPES[IDX[k]+1].k; journal('Étape : '+ETAPES[IDX[r.etape]].n); sauver(); renduFiche();
+  document.getElementById('et_'+r.etape)?.scrollIntoView({behavior:'smooth'});
+}
+function reculer(){const r=cur();r.etape=ETAPES[Math.max(0,IDX[r.etape]-1)].k;journal('Retour à l\'étape : '+ETAPES[IDX[r.etape]].n);sauver();renduFiche();}
+function changerStatut(v){const r=cur();r.statut=v;journal('Statut : '+({en_cours:'En cours',vivier:'Vivier',refuse:'Refusé',desiste:'Désisté'}[v]));sauver();renduFiche();}
+
+// ---- Étape 1
+function etapeCandidature(r){
+  const c=r.candidat, docs=r.docs||[], man=piecesManquantes(r);
+  const lienComp=urlPostuler()+`?id=${r.id}&t=${r.jeton||''}`;
+  const typesDoc=(cfg().pieces||[]).map(p=>[p.key,p.label]).concat([['contrat_signe','Contrat signé (scan)'],['dpae','Accusé DPAE'],['autre','Autre document']]);
+  return `<b style="color:var(--or)">Documents</b>
+  ${docs.map(d=>`<div class="doc">📎 <a href="${d.url}" target="_blank">${esc(d.label)}</a><span class="badge">${fr(d.date)}</span></div>`).join('')||'<div class="doc">Aucun document.</div>'}
+  ${man.map(p=>`<div class="doc manque">✖ ${esc(p.label)} — manquant</div>`).join('')}
+  <div class="barre-act">
+    ${man.length?`<button class="btn petit" onclick="partagerTexte(messages(cur())[1][1])">📤 Envoyer le lien de complément</button>`:''}
+    <label class="btn petit">➕ Ajouter un document<input type="file" class="cache" accept="image/*,application/pdf" onchange="ajoutDoc(this)"></label>
+    <select id="typeDoc" style="width:auto">${typesDoc.map(([k,n])=>`<option value="${k}">${esc(n)}</option>`).join('')}</select>
+  </div>
+  <p style="font-size:12px;color:var(--gris)">Lien de complément : <span style="word-break:break-all">${esc(lienComp)}</span></p>
+  <details style="margin-top:8px"><summary style="cursor:pointer;color:var(--or)">Voir / corriger les informations du candidat</summary>
+  <div class="g2">${champ('Civilité','candidat.civilite','select',{choix:[['M.','M.'],['Mme','Mme']]})}${champ('Nom','candidat.nom')}</div>
+  <div class="g2">${champ('Prénom(s)','candidat.prenom')}${champ('Nom de naissance','candidat.nomNaissance')}</div>
+  <div class="g3">${champ('Date de naissance','candidat.naissance','date',{rerender:1})}${champ('Commune de naissance','candidat.lieuNaissance')}${champ('Dépt / pays de naissance','candidat.deptNaissance')}</div>
+  <div class="g2">${champ('Nationalité','candidat.nationalite')}${champ('Type','candidat.nationaliteType','select',{choix:[['fr','Française'],['ue','UE / EEE / Suisse'],['hors_ue','Hors UE']],rerender:1})}</div>
+  ${c.nationaliteType==='hors_ue'?`<div class="g2">${champ('N° titre de séjour','candidat.sejourNumero')}${champ('Fin de validité','candidat.sejourFin','date',{rerender:1})}</div>`:''}
+  ${champ('Adresse','candidat.adresse')}
+  <div class="g2">${champ('Code postal','candidat.cp')}${champ('Ville','candidat.ville')}</div>
+  <div class="g2">${champ('Téléphone','candidat.tel','tel')}${champ('E-mail','candidat.email','email')}</div>
+  <div class="g2">${champ('N° Sécurité sociale','candidat.secu')}${champ('Pièce d\'identité','candidat.pieceType','select',{choix:[['cni','Carte d\'identité'],['passeport','Passeport'],['sejour','Titre de séjour']],rerender:1})}</div>
+  <div class="g2">${champ('Mutuelle','candidat.mutuelleDispense','select',{choix:[['non','Affiliation à la mutuelle'],['oui','Demande de dispense']],rerender:1})}${champ('Situation','candidat.situation')}</div>
+  <div class="g2">${champ('Urgence : nom','candidat.urgenceNom')}${champ('Urgence : téléphone','candidat.urgenceTel','tel')}</div>
+  <div class="g3">${champ('Taille t-shirt','candidat.taille')}${champ('Disponible du','candidat.dispoDebut','date')}${champ('au','candidat.dispoFin','date')}</div>
+  ${champ('Disponibilités','candidat.dispoDetail','textarea')}
+  ${champ('Expérience','candidat.experience')}${champ('Motivation','candidat.motivation','textarea')}
+  ${c.mineur?`<div class="g2">${champ('Représentant légal','candidat.parentNom')}${champ('Lien','candidat.parentLien')}</div><div class="g2">${champ('Tél. représentant','candidat.parentTel','tel')}${champ('Mail représentant','candidat.parentEmail','email')}</div>`:''}
+  </details>`;
+}
+// ---- Étape 2
+function etapeContact(r){
+  return `<div class="g2">${champ('Date du contact','suivi.contact.date','date',{rerender:1})}${champ('Moyen','suivi.contact.moyen','select',{choix:[['',''],['Téléphone','Téléphone'],['SMS','SMS'],['WhatsApp','WhatsApp'],['Mail','Mail'],['Sur place','Sur place']]})}</div>
+  ${champ('Résultat','suivi.contact.resultat','select',{choix:[['',''],['Entretien proposé','Entretien proposé'],['Pas de réponse — à relancer','Pas de réponse — à relancer'],['N\'est plus disponible','N\'est plus disponible']]})}
+  ${champ('Notes','suivi.contact.notes','textarea')}`;
+}
+// ---- Étape 3
+function etapeEntretien(r){
+  const n=r.suivi.entretien?.notes||{};
+  const tot=GRILLE.reduce((a,[k])=>a+(Number(n[k])||0),0), nb=GRILLE.filter(([k])=>n[k]).length;
+  return `<div class="g2">${champ('Date et heure','suivi.entretien.date','datetime-local',{rerender:1})}${champ('Lieu','suivi.entretien.lieu','select',{choix:[['Au restaurant','Au restaurant'],['Par téléphone','Par téléphone'],['En visio','En visio'],['Autre','Autre']]})}</div>
+  <div class="barre-act"><button class="btn petit" onclick="ajouterAgenda()">📅 Ajouter à mon agenda</button>${r.suivi.entretien?.agenda?'<span class="badge vert">dans l\'agenda</span>':''}</div>
+  <b style="display:block;margin-top:12px;color:var(--or)">Grille d'évaluation ${nb?`<span class="badge or">${(tot/nb).toFixed(1)} / 5</span>`:''}</b>
+  ${GRILLE.map(([k,l])=>`<div class="note"><span>${l}</span><div class="et">${[1,2,3,4,5].map(x=>`<button class="${Number(n[k])===x?'on':''}" onclick="noter('${k}',${x})">${x}</button>`).join('')}</div></div>`).join('')}
+  ${champ('Avis / points forts / points faibles','suivi.entretien.avis','textarea')}`;
+}
+function noter(k,x){const r=cur();set(r,'suivi.entretien.notes.'+k,x);sauver();const y=scrollY;renduFiche();scrollTo(0,y);}
+async function ajouterAgenda(){
+  const r=cur(), e=r.suivi.entretien||{};
+  if(!e.date) return alert('Indique d\'abord la date et l\'heure de l\'entretien.');
+  try{ await api('agenda',{id:r.id,debut:new Date(e.date).toISOString(),duree:30,lieu:e.lieu==='Au restaurant'?'Moule & Smile, 1 boulevard de la Douane, 11560 Saint-Pierre-la-Mer':(e.lieu||'')});
+    set(r,'suivi.entretien.agenda',auj()); journal('Entretien ajouté à l\'agenda'); sauver(); renduFiche(); toast('Ajouté à ton agenda ✓');
+  }catch(err){alert(err.message);}
+}
+// ---- Étape 4
+function etapeValidation(r){
+  const v=r.suivi.validation||{}, P=cfg().paie||{};
+  if(v.taux===undefined){ set(r,'suivi.validation.taux',P.tauxHoraire); set(r,'suivi.validation.heures',P.heuresHebdo); set(r,'suivi.validation.niveau',P.niveau); }
+  const paie=v.type&&v.type!=='extra'?calculPaie(v.heures,v.taux):null;
+  let h=`${champ('Décision','suivi.validation.decision','select',{choix:[['','—'],['retenu','✅ Retenu'],['vivier','🕓 Vivier (plus tard)'],['refuse','❌ Refusé']],rerender:1})}`;
+  if(v.decision==='refuse'||v.decision==='vivier') h+=`<div class="alerte">Pense à prévenir le candidat (Messages types) et à passer le statut en « ${v.decision==='refuse'?'Refusé':'Vivier'} » en haut de la fiche.</div>`;
+  if(v.decision!=='retenu') return h;
+  h+=`<div class="g2">${champ('Contrat validé','suivi.validation.type','select',{choix:[['','—'],...Object.entries(TYPES_CONTRAT).map(([k,t])=>[k,t.label])],rerender:1})}${champ('Poste / intitulé','suivi.validation.poste')}</div>`;
+  if(!v.type) return h;
+  if(v.type==='extra'){
+    h+=`<b style="display:block;margin-top:10px;color:var(--or)">Vacations (missions)</b>`+
+      (v.missions||[]).map((m,k)=>`<div class="g3">${champ('Date','suivi.validation.missions.'+k+'.date','date',{rerender:1})}${champ('Début','suivi.validation.missions.'+k+'.debut','time')}${champ('Fin','suivi.validation.missions.'+k+'.fin','time')}</div>`).join('')+
+      `<div class="barre-act"><button class="btn petit" onclick="ajoutMission()">➕ Ajouter une vacation</button></div>
+      <div class="g2">${champ('Taux horaire brut (€)','suivi.validation.taux','number',{step:'0.01',rerender:1})}${champ('Classification','suivi.validation.niveau')}</div>`;
+  }else{
+    h+=`<div class="g3">${champ('Date de début','suivi.validation.debut','date',{rerender:1})}${v.type!=='cdi_annualise'?champ('Date de fin','suivi.validation.fin','date',{rerender:1}):'<div></div>'}${champ('Heure 1er jour','suivi.validation.heureDebut','time')}</div>
+    <div class="g3">${champ(v.type==='cdi_annualise'?'Heures hebdo moyennes':'Heures par semaine','suivi.validation.heures','number',{step:'0.5',rerender:1})}${champ('Taux horaire brut (€)','suivi.validation.taux','number',{step:'0.01',rerender:1})}${champ('Classification','suivi.validation.niveau')}</div>`;
+    if(v.type==='cdi_annualise') h+=`<div class="g3">${champ('Période de référence du','suivi.validation.refDebut','date')}${champ('au','suivi.validation.refFin','date')}${champ('Heures annuelles','suivi.validation.heuresAnnuelles','number')}</div><p style="font-size:12px;color:var(--gris)">Temps plein = 1 607 h par an (35 h en moyenne). Laisse vide pour un calcul automatique.</p>`;
+    if(paie) h+=`<div class="alerte info">Salaire mensuel brut : <b>${paie.mensuel.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</b> (${String(paie.heuresMois).replace('.',',')} h/mois${v.heures>35?', heures au-delà de 35 h majorées selon la convention HCR':''})${v.type==='cdi_annualise'?' — lissé sur 12 mois':''}.</div>`;
+  }
+  if(v.type==='extra'){ const ms=(v.missions||[]).filter(m=>m.date).map(m=>m.date).sort(); if(ms.length){ set(r,'suivi.validation.debut',ms[0]); set(r,'suivi.validation.fin',ms.at(-1)); } }
+  const essaiDef=essaiParDefaut(v.type,v.debut,v.fin);
+  if(!v.essaiManuel && v.essai!==essaiDef) set(r,'suivi.validation.essai',essaiDef);
+  h+=`<div class="g2"><div><label class="l">Période d'essai (calcul auto : ${esc(essaiDef)})</label><input value="${esc(v.essai||'')}" onchange="const r=cur();set(r,'suivi.validation.essai',this.value);set(r,'suivi.validation.essaiManuel',true);sauver()"></div>${champ('Date de signature prévue','suivi.validation.dateSignature','date')}</div>`;
+  if(Number(v.taux)<Number(P.tauxHoraire)) h+=`<div class="alerte rouge">Le taux horaire est inférieur au taux de référence des réglages (${P.tauxHoraire} €). Vérifie (abattement mineur possible seulement dans les cas prévus par la loi).</div>`;
+  if(r.candidat.mineur && v.heures>35) h+=`<div class="alerte rouge">Candidat mineur : 35 h par semaine maximum.</div>`;
+  if(v.type==='cdi_annualise' && !(cfg().employeur||{}).accordAnnualisation) h+=`<div class="alerte">Annualisation : il faut un accord collectif qui l'autorise (accord de branche HCR ou accord d'entreprise). Sans accord, la répartition des heures est limitée à 9 semaines. Indique l'accord dans Réglages → Employeur, après validation par Exco.</div>`;
+  return h;
+}
+function ajoutMission(){const r=cur();const v=r.suivi.validation;v.missions=v.missions||[];v.missions.push({date:'',debut:'11:30',fin:'15:00'});sauver();const y=scrollY;renduFiche();scrollTo(0,y);}
+// ---- Étape 5
+function etapeContrat(r){
+  const v=r.suivi.validation||{}, ct=r.suivi.contrat||{};
+  if(v.decision!=='retenu'||!v.type) return '<p style="color:var(--gris)">Valide d\'abord le candidat et le type de contrat (étape 4).</p>';
+  const faits=(r.contrats||[]);
+  return `<div class="alerte">⚖️ Modèles rédigés selon le Code du travail et la convention HCR : fais-les relire une fois par Exco avant la première signature.</div>
+  <div class="barre-act">
+    <button class="btn plein" onclick="apercu('${v.type}')">📝 Préparer le contrat (${esc(TYPES_CONTRAT[v.type].court)})</button>
+    ${r.candidat.mineur?`<button class="btn" onclick="apercu('autorisation')">👪 Autorisation parentale</button>`:''}
+  </div>
+  ${faits.map(f=>`<div class="doc">📄 <a href="${f.url}" target="_blank">${esc(f.nom)}</a><span class="badge">${frH(f.date)}</span></div>`).join('')}
+  ${caseC('Contrat signé par les deux parties','suivi.contrat.signe',v.type==='extra'?'À remettre au plus tard dans les 2 jours ouvrables suivant l\'embauche':'Avant le premier jour de travail')}
+  ${caseC('DPAE faite','suivi.contrat.dpae','Sur net-entreprises.fr ou due.urssaf.fr, au plus tôt 8 jours avant et au plus tard juste avant l\'embauche')}
+  ${ct.dpae?champ('N° de la DPAE','suivi.validation.dpaeNumero'):''}
+  <div class="barre-act"><a class="btn petit" href="https://www.due.urssaf.fr" target="_blank">🌐 Faire la DPAE (URSSAF)</a></div>
+  ${champ('Mutuelle santé','suivi.contrat.mutuelle','select',{choix:[['','—'],['affilie','Affilié(e) à la mutuelle de l\'entreprise'],['dispense','Dispense (justificatif reçu)']],rerender:1})}
+  ${caseC('Inscrit(e) au registre unique du personnel','suivi.contrat.registre')}
+  ${caseC('Visite d\'information et de prévention demandée','suivi.contrat.vip',r.candidat.mineur?'Mineur : avant l\'affectation au poste':'Dans les 3 mois suivant la prise de poste')}
+  ${caseC('Dossier transmis au comptable (paie)','suivi.contrat.comptable')}
+  <div class="barre-act"><button class="btn petit" onclick="mailComptable()">✉️ Mail au comptable avec le dossier</button></div>`;
+}
+// ---- Étape 6
+function etapeTenue(r){
+  const t=r.suivi.tenue||{};
+  if(!t.articles){ set(r,'suivi.tenue.articles',ARTICLES_TENUE.map((n,k)=>({nom:n,taille:k===0?(r.candidat.taille||''):'',qte:k===0?2:1}))); }
+  return `<p style="font-size:13px;color:var(--gris)">Taille demandée par le candidat : <b style="color:var(--or)">${esc(r.candidat.taille||'—')}</b></p>
+  <table class="pc">${r.suivi.tenue.articles.map((a,k)=>`<tr><td><input value="${esc(a.nom)}" data-p="suivi.tenue.articles.${k}.nom"></td><td style="width:90px"><input value="${esc(a.taille)}" data-p="suivi.tenue.articles.${k}.taille" placeholder="Taille"></td><td style="width:70px"><input type="number" value="${esc(a.qte)}" data-p="suivi.tenue.articles.${k}.qte"></td></tr>`).join('')}</table>
+  <div class="barre-act"><button class="btn petit" onclick="cur().suivi.tenue.articles.push({nom:'',taille:'',qte:1});sauver();renduFiche()">➕ Article</button></div>
+  <div class="g2">${champ('Date de remise','suivi.tenue.date','date',{rerender:1})}<div></div></div>
+  <div class="barre-act"><button class="btn" onclick="apercu('tenue')">📝 Bon de remise de tenue</button></div>
+  ${caseC('Bon de remise signé','suivi.tenue.bonSigne')}`;
+}
+// ---- Étape 7
+function etapeDemarrage(r){
+  const v=r.suivi.validation||{};
+  if(!r.suivi.demarrage?.date && v.debut) set(r,'suivi.demarrage.date',v.debut);
+  if(!r.suivi.demarrage?.heure && v.heureDebut) set(r,'suivi.demarrage.heure',v.heureDebut);
+  return `<div class="g2">${champ('Date du 1er jour','suivi.demarrage.date','date',{rerender:1})}${champ('Heure','suivi.demarrage.heure','time')}</div>
+  <div class="barre-act"><button class="btn petit" onclick="partagerTexte(messages(cur())[4][1])">📤 Envoyer le message « premier jour »</button></div>
+  ${CHECK_DEMARRAGE.map(([k,l])=>caseC(l,'suivi.demarrage.checks.'+k)).join('')}
+  ${champ('Bilan de fin de période d\'essai','suivi.demarrage.bilan','textarea')}`;
+}
+
+// =====================================================================
+//  DOCUMENTS / CONTRATS
+// =====================================================================
+function donneesDoc(r){
+  const C=cfg();
+  return {E:C.employeur||{},P:C.paie||{},c:r.candidat,v:{...(r.suivi.validation||{}),dateSignature:(r.suivi.validation||{}).dateSignature||auj()},tenue:r.suivi.tenue||{}};
+}
+function nomDoc(type,r){
+  const n=(r.candidat.nom||'').toUpperCase()+' '+r.candidat.prenom;
+  return ({tenue:'Bon de remise de tenue',autorisation:'Autorisation parentale'}[type]||('Contrat '+TYPES_CONTRAT[type].court))+' - '+n+' - '+auj().split('-').reverse().join('-');
+}
+let HTML_DOC='';
+function apercu(type){
+  const r=cur(), D=donneesDoc(r);
+  const manque=[]; ['raison','siret','representant','lieu'].forEach(k=>{if(!D.E[k])manque.push(k==='siret'?'SIRET':k);});
+  HTML_DOC=genererDocument(type,D);
+  $('modale').innerHTML=`<div class="modale" onclick="if(event.target===this)fermer()"><div class="boite">
+    <div class="bt"><b>${esc(nomDoc(type,r))}</b><button class="ib" onclick="fermer()">✕</button></div>
+    <div class="bc">${manque.length?`<div class="alerte rouge">À compléter dans Réglages → Employeur : ${manque.join(', ')} (laissé en pointillés dans le document).</div>`:''}
+    <iframe id="ifr"></iframe></div>
+    <div class="bt"><button class="btn plein" id="btnPdf" onclick="enregistrerPdf('${type}')">💾 Enregistrer en PDF dans le Drive</button><button class="btn" onclick="$('ifr').contentWindow.print()">🖨️ Imprimer</button></div></div></div>`;
+  $('ifr').srcdoc=HTML_DOC;
+}
+function fermer(){$('modale').innerHTML='';}
+async function enregistrerPdf(type){
+  const r=cur(); $('btnPdf').disabled=true; $('btnPdf').textContent='Enregistrement…';
+  try{
+    const j=await api('pdf',{id:r.id,type,nom:nomDoc(type,r),html:HTML_DOC});
+    Object.assign(r,{contrats:j.rec.contrats,journal:j.rec.journal});
+    fermer(); renduFiche(); toast('PDF enregistré dans le Drive ✓'); window.open(j.url,'_blank');
+  }catch(e){ alert(e.message); $('btnPdf').disabled=false; $('btnPdf').textContent='💾 Enregistrer en PDF dans le Drive'; }
+}
+async function ajoutDoc(inp){
+  const f=inp.files[0]; if(!f) return;
+  const key=$('typeDoc').value, label=$('typeDoc').selectedOptions[0].text;
+  toast('Envoi…');
+  try{
+    let data,mime=f.type,name=f.name;
+    if(mime.startsWith('image/')){({data,mime}=await compresser(f));name=name.replace(/\.[^.]+$/,'')+'.jpg';}
+    else data=await new Promise((ok,ko)=>{const rd=new FileReader();rd.onload=()=>ok(String(rd.result).split(',')[1]);rd.onerror=ko;rd.readAsDataURL(f);});
+    const j=await api('televerser',{id:cur().id,fichiers:[{key,label,name,mime,data}]});
+    Object.assign(cur(),{docs:j.rec.docs,journal:j.rec.journal}); renduFiche(); toast('Document ajouté ✓');
+  }catch(e){alert(e.message);}
+}
+function compresser(f){return new Promise((ok,ko)=>{const img=new Image(),u=URL.createObjectURL(f);img.onload=()=>{const max=1800;let w=img.naturalWidth,h=img.naturalHeight;if(Math.max(w,h)>max){const k=max/Math.max(w,h);w=Math.round(w*k);h=Math.round(h*k);}const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(img,0,0,w,h);URL.revokeObjectURL(u);ok({data:c.toDataURL('image/jpeg',.82).split(',')[1],mime:'image/jpeg'});};img.onerror=ko;img.src=u;});}
+
+// =====================================================================
+//  ACTIONS DIVERSES
+// =====================================================================
+function partagerTexte(t){
+  if(navigator.share) navigator.share({text:t}).catch(()=>{});
+  else { navigator.clipboard.writeText(t); toast('Message copié ✓'); }
+}
+function modaleMessages(){
+  const r=cur();
+  $('modale').innerHTML=`<div class="modale" onclick="if(event.target===this)fermer()"><div class="boite"><div class="bt"><b>Messages types</b><button class="ib" onclick="fermer()">✕</button></div><div class="bc">
+  ${messages(r).map(([t,m],k)=>{const L=liens(r,m);return `<div class="carte"><b style="color:var(--or)">${t}</b><p style="white-space:pre-wrap;font-size:13.5px">${esc(m)}</p><div class="barre-act"><a class="btn petit" href="${L.sms}">💬 SMS</a><a class="btn petit" href="${L.wa}" target="_blank">🟢 WhatsApp</a>${r.candidat.email?`<a class="btn petit" href="${L.mail}">✉️ Mail</a>`:''}<button class="btn petit" onclick="navigator.clipboard.writeText(messages(cur())[${k}][1]);toast('Copié ✓')">📋 Copier</button></div></div>`;}).join('')}
+  </div></div></div>`;
+}
+function mailComptable(){
+  const r=cur(), c=r.candidat, v=r.suivi.validation||{};
+  const corps=`Bonjour,\n\nVoici le dossier d'embauche de ${c.prenom} ${c.nom} pour Moule & Smile :\n- Contrat : ${TYPES_CONTRAT[v.type]?.court||''} du ${fr(v.debut)}${v.fin?' au '+fr(v.fin):''}\n- ${v.heures||''} h/semaine, ${v.taux||''} € brut/heure\n- DPAE : ${v.dpaeNumero||'faite'}\n- Mutuelle : ${r.suivi.contrat?.mutuelle==='dispense'?'dispense':'affiliation'}\n\nTous les documents (contrat, pièce d'identité, carte Vitale, RIB) sont dans ce dossier : ${r.dossierUrl}\n\nBonne journée,${signature()}`;
+  location.href=`mailto:?subject=${encodeURIComponent('Embauche '+c.prenom+' '+c.nom+' — Moule & Smile')}&body=${encodeURIComponent(corps)}`;
+}
+function copierPlanning(){
+  const r=cur(), c=r.candidat, v=r.suivi.validation||{};
+  const t=`${c.prenom} ${c.nom}\nTél : ${c.tel}\nMail : ${c.email||''}\nPoste(s) : ${(c.postes||[]).join(', ')}\nContrat : ${TYPES_CONTRAT[v.type]?.court||''} — ${v.heures||''} h/sem\nDu ${fr(v.debut)}${v.fin?' au '+fr(v.fin):''}\nDisponibilités : ${c.dispoDetail||''}${c.mineur?'\n⚠️ Mineur : 8 h/jour et 35 h/semaine max, pas au bar':''}`;
+  navigator.clipboard.writeText(t).then(()=>toast('Fiche copiée ✓ — colle-la dans Planning & RH'));
+}
+async function supprimer(){
+  const r=cur();
+  if(!confirm(`Supprimer définitivement la fiche de ${r.candidat.prenom} ${r.candidat.nom} ?\nSon dossier Drive sera mis à la corbeille.`)) return;
+  try{await api('supprimer',{id:r.id});S.candidats=S.candidats.filter(x=>x.id!==r.id);vue('liste');toast('Fiche supprimée');}catch(e){alert(e.message);}
+}
+async function creerFiche(){
+  const p=prompt('Prénom et NOM du candidat (ex. : Léa MARTIN)'); if(!p) return;
+  const m=p.trim().split(/\s+/); const prenom=m.shift(), nom=(m.join(' ')||'').toUpperCase();
+  const tel=prompt('Téléphone ?')||'';
+  try{const j=await api('creer',{candidat:{prenom,nom,tel,postes:[]}});S.candidats.unshift(j.rec);ouvrir(j.rec.id);}catch(e){alert(e.message);}
+}
+function modaleLien(){
+  const u=urlPostuler();
+  $('modale').innerHTML=`<div class="modale" onclick="if(event.target===this)fermer()"><div class="boite" style="max-width:460px"><div class="bt"><b>Lien de candidature</b><button class="ib" onclick="fermer()">✕</button></div><div class="bc" style="text-align:center">
+  <p>À partager sur les réseaux, Indeed, par SMS, ou à imprimer en QR code sur une affiche.</p>
+  <img src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encodeURIComponent(u)}" style="background:#fff;border-radius:10px;width:220px;height:220px" alt="QR code">
+  <p style="word-break:break-all;color:var(--or2)">${esc(u)}</p>
+  <div class="barre-act" style="justify-content:center"><button class="btn" onclick="navigator.clipboard.writeText('${u}');toast('Lien copié ✓')">📋 Copier</button><button class="btn" onclick="partagerTexte('Moule & Smile recrute pour la saison ! Postule ici : ${u}')">📤 Partager</button><a class="btn" href="${u}" target="_blank">👁️ Voir</a></div></div></div></div>`;
+}
+
+// =====================================================================
+//  RÉGLAGES
+// =====================================================================
+function renduReglages(){
+  const C=cfg(), E=C.employeur||{}, P=C.paie||{}, SE=C.seuils||{};
+  const ch=(lbl,grp,k,type='text',step)=>`<label class="l">${lbl}</label><input type="${type}" ${step?`step="${step}"`:''} value="${esc((C[grp]||{})[k]??'')}" onchange="majCfg('${grp}','${k}',this.value,'${type}')">`;
+  $('app').innerHTML=bandeauDemo()+`<button class="btn petit" onclick="vue('liste')">← Tableau</button>
+  <div class="carte" style="margin-top:10px"><b style="color:var(--or)">Règles et seuils surveillés par l'appli</b>
+  <ul class="regles" style="font-size:13.5px">
+    <li>🔴 <b>À contacter</b> : candidature non contactée après <b>${SE.contactHeures} h</b>.</li>
+    <li>🟠 <b>Décision en attente</b> : entretien passé depuis plus de <b>${SE.decisionJours} jour(s)</b> sans décision « Retenu ».</li>
+    <li>🔴 <b>DPAE à faire</b> : DPAE non cochée à <b>${SE.dpaeJours} jour(s)</b> ou moins du premier jour.</li>
+    <li>🔴 <b>Contrat non signé</b> : CDD ou CDI non signé à 2 jours ou moins du premier jour.</li>
+    <li>🟠/🔴 <b>Contrat d'extra</b> : à faire signer au plus tard <b>${SE.contratExtraJours} jours ouvrables</b> après le début de la mission.</li>
+    <li>🟠 <b>Pièces manquantes</b> : une pièce obligatoire (liste ci-dessous) n'a pas été reçue.</li>
+    <li>🔴 <b>Titre de séjour</b> : fin de validité avant la fin du contrat ou dans moins de 30 jours.</li>
+    <li>🟠 <b>Mineur</b> : autorisation parentale et pièce d'identité du représentant obligatoires ; 35 h/semaine maximum ; alerte si heures &gt; 35.</li>
+    <li>🔴 <b>Taux horaire</b> : alerte si le taux saisi est inférieur au taux de référence (${P.tauxHoraire} €).</li>
+    <li>🟠 <b>CDI annualisé</b> : rappel tant que l'accord collectif autorisant l'annualisation n'est pas renseigné.</li>
+    <li>🔒 <b>Passage d'étape</b> : chaque étape vérifie sa check-list (contact daté, entretien daté, décision + contrat + dates + taux, contrat PDF + signé + DPAE + mutuelle + autorisation parentale si mineur, tenue remise, check-list du premier jour). On peut forcer le passage après confirmation.</li>
+  </ul></div>
+  <div class="carte"><b style="color:var(--or)">Seuils</b><div class="g2">${ch('Délai pour contacter (heures)','seuils','contactHeures','number')}${ch('Délai de décision après entretien (jours)','seuils','decisionJours','number')}${ch('Alerte DPAE (jours avant le début)','seuils','dpaeJours','number')}${ch('Signature contrat extra (jours ouvrables)','seuils','contratExtraJours','number')}</div></div>
+  <div class="carte"><b style="color:var(--or)">Employeur (repris dans les contrats)</b>
+  <div class="g2">${ch('Raison sociale','employeur','raison')}${ch('Forme','employeur','forme')}</div>
+  <div class="g2">${ch('Capital (€)','employeur','capital')}${ch('SIRET','employeur','siret')}</div>
+  ${ch('Siège social','employeur','siege')}
+  <div class="g2">${ch('Code NAF','employeur','naf')}${ch('URSSAF','employeur','urssaf')}</div>
+  <div class="g2">${ch('Représentant','employeur','representant')}${ch('Qualité','employeur','qualite')}</div>
+  <div class="g2">${ch('Enseigne','employeur','enseigne')}${ch('Ville de signature','employeur','villeSignature')}</div>
+  ${ch('Lieu de travail','employeur','lieu')}
+  <div class="g2">${ch('Caisse de retraite complémentaire','employeur','retraite')}${ch('Organisme de prévoyance','employeur','prevoyance')}</div>
+  <div class="g2">${ch('Mutuelle santé','employeur','mutuelle')}${ch('Service de santé au travail','employeur','santeTravail')}</div>
+  ${ch('Accord autorisant l\'annualisation (CDI)','employeur','accordAnnualisation')}</div>
+  <div class="carte"><b style="color:var(--or)">Paie par défaut</b><div class="g2">${ch('Taux horaire brut (€) — SMIC 12,31 € depuis le 1er juin 2026','paie','tauxHoraire','number','0.01')}${ch('Minimum garanti repas (€)','paie','mg','number','0.01')}</div><div class="g2">${ch('Heures par semaine','paie','heuresHebdo','number','0.5')}${ch('Classification HCR','paie','niveau')}</div></div>
+  <div class="carte"><b style="color:var(--or)">Formulaire candidat</b>
+  <label class="l">Message d'accueil</label><textarea onchange="S.config.accueil=this.value;sauverCfg()">${esc(C.accueil)}</textarea>
+  <label class="l">Postes proposés (un par ligne)</label><textarea rows="5" onchange="S.config.postes=this.value.split('\\n').map(s=>s.trim()).filter(Boolean);sauverCfg()">${esc((C.postes||[]).join('\n'))}</textarea>
+  <label class="l">Contrats proposés aux candidats (un par ligne)</label><textarea rows="4" onchange="S.config.contratsProposes=this.value.split('\\n').map(s=>s.trim()).filter(Boolean).map((l,i)=>({code:'c'+i,label:l}));sauverCfg()">${esc((C.contratsProposes||[]).map(c=>c.label).join('\n'))}</textarea>
+  <label class="check"><input type="checkbox" ${C.confirmationCandidat?'checked':''} onchange="S.config.confirmationCandidat=this.checked;sauverCfg()"><span class="t">Envoyer un mail de confirmation au candidat</span></label>
+  <b style="display:block;margin-top:10px">Pièces demandées</b>
+  <table class="pc">${(C.pieces||[]).map((p,k)=>`<tr><td><input value="${esc(p.label)}" onchange="S.config.pieces[${k}].label=this.value;sauverCfg()"></td><td style="width:170px"><select onchange="S.config.pieces[${k}].req=this.value;sauverCfg()">${[['oui','Obligatoire'],['non','Facultative'],['hors_ue','Si hors UE'],['mineur','Si mineur'],['dispense','Si dispense mutuelle']].map(([a,b])=>`<option value="${a}" ${p.req===a?'selected':''}>${b}</option>`).join('')}</select></td></tr>`).join('')}</table></div>
+  <div class="carte"><b style="color:var(--or)">Liens</b><div class="barre-act">
+    ${S.sheetUrl?`<a class="btn petit" target="_blank" href="${S.sheetUrl}">📊 Tableau Google Sheet</a>`:''}${S.driveUrl?`<a class="btn petit" target="_blank" href="${S.driveUrl}">📁 Dossier Drive</a>`:''}
+    <a class="btn petit" target="_blank" href="guide-recrutement.pdf">📘 Guide PDF</a>
+    <button class="btn petit rouge" onclick="localStorage.removeItem('rec_cle');S.cle='';charger()">Se déconnecter</button></div></div>`;
+}
+function majCfg(g,k,v,t){S.config[g]=S.config[g]||{};S.config[g][k]=t==='number'?Number(v):v;sauverCfg();}
+let mCfg=null;
+function sauverCfg(){clearTimeout(mCfg);mCfg=setTimeout(async()=>{try{await api('config',{config:S.config});toast('Réglages enregistrés ✓');if(S.vue==='reglages')renduReglages();}catch(e){toast('⚠️ '+e.message);}},600);}
+
+// =====================================================================
+//  MODE DÉMO (avant branchement du script)
+// =====================================================================
+function demoInit(){
+  S.config={employeur:{raison:'SAS LA MARMITE BLEUE',forme:'SAS',capital:'',siege:'83 avenue Jean Camp, 11100 Narbonne',siret:'',naf:'5610A',urssaf:'URSSAF Languedoc-Roussillon',representant:'Thomas MARTIN',qualite:'Président',enseigne:'Moule & Smile',lieu:'1 boulevard de la Douane, 11560 Saint-Pierre-la-Mer',villeSignature:'Saint-Pierre-la-Mer',retraite:'',prevoyance:'',mutuelle:'',santeTravail:'',accordAnnualisation:''},
+    paie:{tauxHoraire:12.31,mg:4.25,heuresHebdo:35,niveau:'Niveau I – Échelon 1'},seuils:{contactHeures:48,decisionJours:3,dpaeJours:1,contratExtraJours:2},
+    postes:['Moules','Frites','Bar','Salle','Plonge / polyvalent'],contratsProposes:[{code:'a',label:'CDD saisonnier (saison)'},{code:'b',label:'CDD saisonnier juillet-août'},{code:'c',label:'Extra (week-ends / renforts)'},{code:'d',label:'CDI annualisé'}],
+    pieces:[{key:'cv',label:'CV',req:'oui'},{key:'lettre',label:'Lettre de motivation',req:'non'},{key:'id_recto',label:"Pièce d'identité — recto",req:'oui'},{key:'id_verso',label:"Pièce d'identité — verso",req:'oui'},{key:'vitale',label:'Carte Vitale',req:'oui'},{key:'rib',label:'RIB',req:'oui'},{key:'sejour',label:'Titre de séjour',req:'hors_ue'},{key:'autorisation',label:'Autorisation parentale signée',req:'mineur'},{key:'id_parent',label:"Pièce d'identité du représentant légal",req:'mineur'}],
+    accueil:'Merci de ton intérêt pour Moule & Smile !',confirmationCandidat:true};
+  const il=h=>new Date(Date.now()-h*3600000).toISOString().slice(0,19);
+  const doc=k=>({key:k,label:k,url:'#',date:il(30)});
+  S.candidats=[
+    {id:'D1',cree:il(60),etape:'recu',statut:'en_cours',jeton:'x',candidat:{civilite:'Mme',prenom:'Léa',nom:'DURAND',tel:'0611223344',email:'lea@example.fr',postes:['Salle','Bar'],contratSouhaite:'CDD saisonnier juillet-août',dispoDebut:'2027-07-01',dispoFin:'2027-08-31',naissance:'2004-05-12',lieuNaissance:'Narbonne',deptNaissance:'11',nationalite:'Française',nationaliteType:'fr',adresse:'3 rue des Pins',cp:'11100',ville:'Narbonne',secu:'',taille:'S',age:23,mineur:false},docs:['cv','id_recto','id_verso','vitale'].map(doc),suivi:{},journal:[{d:il(60),t:'Candidature reçue'}],contrats:[]},
+    {id:'D2',cree:il(200),etape:'validation',statut:'en_cours',jeton:'x',candidat:{civilite:'M.',prenom:'Hugo',nom:'BERNARD',tel:'0699887766',email:'hugo@example.fr',postes:['Frites'],contratSouhaite:'CDD saisonnier (saison)',dispoDebut:'2027-06-01',dispoFin:'2027-09-15',naissance:'2009-09-01',lieuNaissance:'Béziers',deptNaissance:'34',nationalite:'Française',nationaliteType:'fr',adresse:'12 av. de la Mer',cp:'11560',ville:'Fleury',secu:'109093403212345',taille:'M',age:17,mineur:true,parentNom:'Sophie BERNARD',parentLien:'Mère',parentTel:'0600000000'},docs:['cv','id_recto','id_verso','vitale','rib'].map(doc),suivi:{contact:{date:'2026-11-10',moyen:'Téléphone'},entretien:{date:'2026-11-14T10:00',notes:{presentation:4,motivation:5}},validation:{decision:'retenu',type:'cdd_saison',poste:'Équipier polyvalent — poste frites',debut:'2027-06-01',fin:'2027-09-15',heures:35,taux:12.31,niveau:'Niveau I – Échelon 1'}},journal:[],contrats:[]},
+    {id:'D3',cree:il(400),etape:'contrat',statut:'en_cours',jeton:'x',candidat:{civilite:'M.',prenom:'Karim',nom:'SAÏDI',tel:'0612121212',postes:['Moules','Plonge / polyvalent'],contratSouhaite:'Extra (week-ends / renforts)',dispoDebut:'2026-11-17',naissance:'1998-02-03',lieuNaissance:'Perpignan',deptNaissance:'66',nationalite:'Française',nationaliteType:'fr',adresse:'5 bd Gambetta',cp:'11100',ville:'Narbonne',secu:'198026613612345',taille:'L',age:28,mineur:false},docs:['cv','id_recto','id_verso','vitale','rib'].map(doc),suivi:{contact:{date:'2026-11-05'},entretien:{date:'2026-11-08T15:00'},validation:{decision:'retenu',type:'extra',poste:'Équipier extra',missions:[{date:'2026-11-17',debut:'11:30',fin:'15:30'},{date:'2026-11-18',debut:'18:30',fin:'23:30'}],taux:12.31,niveau:'Niveau I – Échelon 1'}},journal:[],contrats:[]}
+  ];
+}
+function demoApi(action,d){
+  if(action==='pdf'){ const r=cur(); r.contrats.push({type:d.type,nom:d.nom+'.pdf',url:'#',date:new Date().toISOString().slice(0,19)}); return {ok:true,url:'about:blank',rec:r}; }
+  if(action==='creer'){ return {ok:true,rec:{id:'D'+Date.now(),cree:new Date().toISOString().slice(0,19),etape:'recu',statut:'en_cours',candidat:d.candidat,docs:[],suivi:{},journal:[],contrats:[]}}; }
+  if(action==='televerser'){ const r=cur(); r.docs.push({key:d.fichiers[0].key,label:d.fichiers[0].label,url:'#',date:new Date().toISOString()}); return {ok:true,rec:r}; }
+  return {ok:true};
+}
+
+// =====================================================================
+//  DÉMARRAGE
+// =====================================================================
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+charger();
+</script>
+</body>
+</html>
