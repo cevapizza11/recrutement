@@ -11,6 +11,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <script src="config.js"></script>
 <script src="contrats.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
 :root{--noir:#0d0d0d;--carte:#171717;--carte2:#1f1f1f;--ligne:#2c2c2c;--or:#d4a537;--or2:#f0c75e;--txt:#f3f0e8;--gris:#9a958a;--rouge:#e5534b;--vert:#3fb27f;--bleu:#5aa1e3;--orange:#e8963a}
 *{box-sizing:border-box}
@@ -105,7 +108,7 @@ table.pc td{padding:5px 4px;border-bottom:1px solid #242424}
 <body>
 <header>
   <img src="icon.svg" alt="">
-  <div><h1>Recrutement</h1><div class="v">Moule &amp; Smile · v.19/11/2026 08:27</div></div>
+  <div><h1>Recrutement</h1><div class="v">Moule &amp; Smile · v.19/11/2026 09:31</div></div>
   <div class="actions" id="hdrActions">
     <button class="ib" title="Tableau" onclick="vue('liste')">📋</button>
     <button class="ib" title="Ajouter une fiche" onclick="creerFiche()">＋</button>
@@ -133,7 +136,7 @@ const ETAPES=[
 ];
 const IDX=Object.fromEntries(ETAPES.map((e,i)=>[e.k,i]));
 const GRILLE=[['presentation','Présentation / ponctualité'],['motivation','Motivation'],['experience','Expérience'],['dispo','Disponibilités'],['equipe','Esprit d\'équipe'],['rush','Résistance au rush']];
-const CHECK_DEMARRAGE=[['accueil','Accueil et visite du restaurant'],['livret','Livret d\'accueil / règles de la maison remis'],['hygiene','Formation hygiène / HACCP de base'],['securite','Consignes de sécurité et plans d\'évacuation'],['pointeuse','Compte créé dans la Pointeuse'],['planning','Ajouté(e) dans Planning & RH'],['caisse','Accès caisse / appli commande si besoin']];
+const CHECK_DEMARRAGE=[['accueil','Accueil et visite du restaurant'],['livret','Livret d\'accueil / règles de la maison remis'],['hygiene','Formation hygiène / HACCP de base'],['securite','Consignes de sécurité et plans d\'évacuation'],['pointeuse','Compte créé dans la Pointeuse (bouton ci-dessus)'],['planning','Ajouté(e) dans Planning & RH'],['caisse','Accès caisse / appli commande si besoin']];
 const ARTICLES_TENUE=['T-shirt Moule & Smile','Casquette','Tablier'];
 let S={cle:localStorage.getItem('rec_cle')||'',candidats:[],config:null,sheetUrl:'',driveUrl:'',vue:'liste',filtre:'actifs',recherche:'',id:null,demo:false};
 const $=id=>document.getElementById(id);
@@ -575,9 +578,90 @@ function etapeDemarrage(r){
   if(!r.suivi.demarrage?.heure && v.heureDebut) set(r,'suivi.demarrage.heure',v.heureDebut);
   return `<div class="g2">${champ('Date du 1er jour','suivi.demarrage.date','date',{rerender:1})}${champ('Heure','suivi.demarrage.heure','time')}</div>
   <div class="barre-act"><button class="btn petit" onclick="partagerTexte(messages(cur())[4][1])">📤 Envoyer le message « premier jour »</button></div>
+  ${blocPointeuse(r)}
   ${CHECK_DEMARRAGE.map(([k,l])=>caseC(l,'suivi.demarrage.checks.'+k)).join('')}
   ${champ('Bilan de fin de période d\'essai','suivi.demarrage.bilan','textarea')}`;
 }
+
+// =====================================================================
+//  POINTEUSE — création automatique de l'équipier
+//  (même base Firebase que l'appli Pointeuse : projet pointagemarmitebleue)
+// =====================================================================
+const PT_CONFIG={apiKey:"AIzaSyBZ03rRzX8DL5Xgqn7U1p8PfiL83Zqtmvc",authDomain:"pointagemarmitebleue.firebaseapp.com",projectId:"pointagemarmitebleue",storageBucket:"pointagemarmitebleue.firebasestorage.app",messagingSenderId:"483578019330",appId:"1:483578019330:web:f15b69bfd7d652b773711b"};
+const PT_EMAIL="tmjumeaux@gmail.com";
+const PT_URL="https://cevapizza11.github.io/Pointeuse/";
+let ptApp=null;
+function pointeuseApp(){ if(!ptApp) ptApp=firebase.initializeApp(PT_CONFIG,'pointeuse'); return ptApp; }
+function ptUtilisateur(){ // attend la reprise de session mémorisée
+  const auth=pointeuseApp().auth();
+  return new Promise(ok=>{const stop=auth.onAuthStateChanged(u=>{stop();ok(u);});});
+}
+function donneesPointeuse(r){
+  const c=r.candidat, v=r.suivi.validation||{}, d=r.suivi.demarrage||{};
+  let h=Number(v.heures)||35;
+  if(v.type==='extra'){ // extra : temps partiel, heures = total des vacations prévues
+    const min=(v.missions||[]).reduce((a,m)=>{if(!m.debut||!m.fin)return a;const[x,y]=m.debut.split(':').map(Number),[z,w]=m.fin.split(':').map(Number);let d=(z*60+w)-(x*60+y);if(d<0)d+=1440;return a+d;},0);
+    h=Math.min(34.5,Math.max(1,Math.round(min/30)/2));
+  }
+  return { name:`${c.prenom||''} ${(c.nom||'').toUpperCase()}`.trim(), contractType:h>=35?'temps_plein':'temps_partiel', contractHours:h, plannedTime:d.heure||v.heureDebut||'' };
+}
+function blocPointeuse(r){
+  const d=r.suivi.demarrage||{}, p=donneesPointeuse(r);
+  if(d.pointeuseId) return `<div class="alerte info">⏱️ <b>${esc(p.name)}</b> est dans la Pointeuse (créé le ${fr(d.pointeuseDate)}). Il choisira son code PIN à son premier pointage. <a href="${PT_URL}" target="_blank" style="color:var(--or2)">Ouvrir la Pointeuse</a></div>`;
+  return `<div class="carte" style="background:var(--carte2)"><b style="color:var(--or)">⏱️ Pointeuse</b>
+    <p style="font-size:13px;margin:6px 0">Sera créé : <b>${esc(p.name)}</b> · ${p.contractType==='temps_plein'?'Temps plein':'Temps partiel'} ${p.contractHours} h/sem · heure prévue ${esc(p.plannedTime||'—')}</p>
+    <button class="btn plein" id="btnPt" onclick="creerDansPointeuse()">➕ Créer dans la Pointeuse</button></div>`;
+}
+function demanderMdpPointeuse(msg){
+  return new Promise(ok=>{
+    $('modale').innerHTML=`<div class="modale"><div class="boite" style="max-width:420px"><div class="bt"><b>Connexion à la Pointeuse</b></div><div class="bc">
+      <p>Tape le mot de passe de la Pointeuse (compte ${PT_EMAIL}). Il est demandé une seule fois sur cet appareil.</p>
+      ${msg?`<div class="alerte rouge">${esc(msg)}</div>`:''}
+      <input type="password" id="ptMdp" autocomplete="current-password" placeholder="Mot de passe">
+      <div class="barre-act"><button class="btn plein" id="ptOk">Se connecter</button><button class="btn" id="ptAnnul">Annuler</button></div></div></div></div>`;
+    $('ptMdp').focus();
+    $('ptOk').onclick=()=>{const v=$('ptMdp').value;fermer();ok(v);};
+    $('ptMdp').onkeydown=e=>{if(e.key==='Enter')$('ptOk').click();};
+    $('ptAnnul').onclick=()=>{fermer();ok(null);};
+  });
+}
+async function connecterPointeuse(){
+  let u=await ptUtilisateur(); if(u) return true;
+  let msg='';
+  for(let essai=0;essai<3;essai++){
+    const mdp=await demanderMdpPointeuse(msg); if(!mdp) return false;
+    try{ await pointeuseApp().auth().signInWithEmailAndPassword(PT_EMAIL,mdp); return true; }
+    catch(e){ msg=/password|credential/.test(e.code||'')?'Mot de passe incorrect.':(e.message||'Connexion impossible'); }
+  }
+  return false;
+}
+async function creerDansPointeuse(){
+  const r=cur(), p=donneesPointeuse(r);
+  if(S.demo){ set(r,'suivi.demarrage.pointeuseId','demo');set(r,'suivi.demarrage.pointeuseDate',auj());set(r,'suivi.demarrage.checks.pointeuse',auj());renduFiche();return toast('Démo : créé (fictif)'); }
+  if(!p.name) return alert('Nom du candidat manquant.');
+  const b=$('btnPt'); if(b){b.disabled=true;b.textContent='Connexion…';}
+  try{
+    if(!(await connecterPointeuse())){ if(b){b.disabled=false;b.textContent='➕ Créer dans la Pointeuse';} return; }
+    const db=pointeuseApp().firestore();
+    const ex=await db.collection('employees').where('name','==',p.name).get();
+    const actif=ex.docs.find(d=>d.data().active!==false);
+    let id;
+    if(actif){
+      if(!confirm(`${p.name} existe déjà dans la Pointeuse.\nLe relier à cette fiche sans créer de doublon ?`)){ if(b){b.disabled=false;b.textContent='➕ Créer dans la Pointeuse';} return; }
+      id=actif.id;
+    }else{
+      const ref=await db.collection('employees').add({...p,active:true,pinHash:null,createdAt:firebase.firestore.Timestamp.now()});
+      id=ref.id;
+    }
+    set(r,'suivi.demarrage.pointeuseId',id); set(r,'suivi.demarrage.pointeuseDate',auj()); set(r,'suivi.demarrage.checks.pointeuse',auj());
+    journal(actif?'Relié à la Pointeuse (déjà existant)':'Créé dans la Pointeuse'); sauver();
+    const y=scrollY; renduFiche(); scrollTo(0,y); toast(actif?'Relié à la Pointeuse ✓':'Équipier créé dans la Pointeuse ✓');
+  }catch(e){
+    alert('La Pointeuse a refusé : '+(e.message||e));
+    if(b){b.disabled=false;b.textContent='➕ Créer dans la Pointeuse';}
+  }
+}
+async function deconnecterPointeuse(){ try{ await pointeuseApp().auth().signOut(); toast('Pointeuse déconnectée sur cet appareil'); }catch(e){} }
 
 // =====================================================================
 //  DOCUMENTS / CONTRATS
@@ -712,7 +796,7 @@ function renduReglages(){
   <div class="carte"><b style="color:var(--or)">Liens</b><div class="barre-act">
     ${S.sheetUrl?`<a class="btn petit" target="_blank" href="${S.sheetUrl}">📊 Tableau Google Sheet</a>`:''}${S.driveUrl?`<a class="btn petit" target="_blank" href="${S.driveUrl}">📁 Dossier Drive</a>`:''}
     <a class="btn petit" target="_blank" href="guide-recrutement.pdf">📘 Guide PDF</a>
-    <button class="btn petit rouge" onclick="localStorage.removeItem('rec_cle');S.cle='';charger()">Se déconnecter</button></div></div>`;
+    <button class="btn petit" onclick="deconnecterPointeuse()">⏱️ Déconnecter la Pointeuse</button><button class="btn petit rouge" onclick="localStorage.removeItem('rec_cle');S.cle='';charger()">Se déconnecter</button></div></div>`;
 }
 function majCfg(g,k,v,t){S.config[g]=S.config[g]||{};S.config[g][k]=t==='number'?Number(v):v;sauverCfg();}
 let mCfg=null;
