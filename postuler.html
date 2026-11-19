@@ -57,6 +57,14 @@ nav.bas .btn{flex:1;max-width:300px;padding:14px}
 .fin .gros{font-size:60px}
 .barre{height:8px;border-radius:4px;background:#222;overflow:hidden;margin-top:12px}
 .barre div{height:100%;width:0;background:var(--or);transition:width .3s}
+.toutdispo{background:#2a2110;border:1px solid var(--or);border-radius:10px;padding:10px}
+.jour{display:grid;grid-template-columns:78px 1fr;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--ligne)}
+.jour:last-child{border-bottom:none}
+.jour>*{min-width:0}
+.jour b{font-size:14px}
+.jour select{padding:9px}
+.jour .heures{display:flex;gap:6px;align-items:center;margin-top:6px;grid-column:2}
+.jour .heures input{padding:8px;min-width:0;flex:1}
 .cache{display:none!important}
 .pot{position:absolute;left:-9999px}
 </style>
@@ -65,7 +73,7 @@ nav.bas .btn{flex:1;max-width:300px;padding:14px}
 <header>
   <img src="icon.svg" alt="">
   <h1>Rejoins l'équipe Moule &amp; Smile</h1>
-  <span class="v">v.19/11/2026 09:31</span>
+  <span class="v">v.19/11/2026 14:54</span>
 </header>
 <main>
   <div id="intro" class="intro"></div>
@@ -83,8 +91,11 @@ nav.bas .btn{flex:1;max-width:300px;padding:14px}
         <div><label>Disponible à partir du <span class="ob">*</span></label><input type="date" id="dispoDebut"></div>
         <div><label>Jusqu'au</label><input type="date" id="dispoFin"></div>
       </div>
-      <label>Tes disponibilités (jours, horaires, contraintes)</label>
-      <textarea id="dispoDetail" placeholder="Ex. : tous les jours sauf le mardi, pas avant 10h…"></textarea>
+      <label>Tes disponibilités dans la semaine <span class="ob">*</span></label>
+      <label class="coche toutdispo"><input type="checkbox" id="toutDispo" onchange="dessinerDispos()"> <b>Je suis totalement disponible</b> (tous les jours, midi et soir)</label>
+      <div id="tabDispos"></div>
+      <label>Précisions sur tes disponibilités (facultatif)</label>
+      <textarea id="dispoDetail" placeholder="Ex. : pas disponible le 14 juillet, examen le 20 juin…"></textarea>
       <label>Expérience en restauration</label>
       <select id="experience"><option value="">—</option><option>Aucune, je débute</option><option>Moins de 6 mois</option><option>6 mois à 2 ans</option><option>Plus de 2 ans</option></select>
       <label>Raconte-nous en quelques mots (expériences, motivation)</label>
@@ -216,6 +227,9 @@ let CFG = {
   saison:{debut:'2027-03-12',fin:'2027-10-31'}, enseigne:'Moule & Smile'
 };
 const TAILLES=['XS','S','M','L','XL','XXL','3XL'];
+const JOURS=[['lun','Lundi'],['mar','Mardi'],['mer','Mercredi'],['jeu','Jeudi'],['ven','Vendredi'],['sam','Samedi'],['dim','Dimanche']];
+let DISPOS={}; JOURS.forEach(([k])=>DISPOS[k]={m:'j',de:'11:00',a:'15:00'});
+
 const fichiers={};          // key -> {name,mime,data,label}
 let page=0, MODE='candidature', COMP=null;
 const qs=new URLSearchParams(location.search);
@@ -239,7 +253,7 @@ const apiOK=()=>typeof API_URL==='string' && API_URL.startsWith('https://');
   $('postes').innerHTML=CFG.postes.map(p=>`<label><input type="checkbox" value="${esc(p)}"> ${esc(p)}</label>`).join('');
   $('contratSouhaite').innerHTML='<option value="">—</option>'+CFG.contratsProposes.map(c=>`<option value="${esc(c.label)}">${esc(c.label)}</option>`).join('');
   $('tailles').innerHTML=TAILLES.map(t=>`<label><input type="radio" name="taille" value="${t}"> ${t}</label>`).join('');
-  restaurerBrouillon();
+  restaurerBrouillon(); dessinerDispos();
   document.querySelectorAll('input,select,textarea').forEach(el=>el.addEventListener('change',()=>{majConditions();sauverBrouillon();}));
   majConditions(); dessinerEtapes(); majNav();
 })();
@@ -347,6 +361,8 @@ function verifier(p){
     if(!cocheesPostes().length) return 'Choisis au moins un poste.';
     if(!$('contratSouhaite').value) return 'Choisis le type de contrat souhaité.';
     if(!$('dispoDebut').value) return 'Indique ta date de disponibilité.';
+    if(!$('toutDispo').checked && JOURS.every(([k])=>DISPOS[k].m==='n')) return 'Indique au moins un jour où tu es disponible (ou coche « totalement disponible »).';
+    for(const [k,l] of JOURS){const d=DISPOS[k]; if(!$('toutDispo').checked && d.m==='p' && (!d.de||!d.a||d.de===d.a)) return 'Vérifie les heures du '+l.toLowerCase()+'.';}
   }
   if(p===1){
     for(const [id,n] of [['nom','ton nom'],['prenom','ton prénom'],['naissance','ta date de naissance'],['lieuNaissance','ta commune de naissance'],['deptNaissance','ton département ou pays de naissance'],['nationalite','ta nationalité'],['nationaliteType','le type de nationalité']]) if(!$(id).value.trim()) return 'Indique '+n+'.';
@@ -373,17 +389,36 @@ function verifier(p){
   }
   return null;
 }
+// ---------- Tableau des disponibilités ----------
+function dessinerDispos(){
+  const tout=$('toutDispo').checked;
+  $('tabDispos').innerHTML= tout ? '' : `<div class="bloc" style="padding:6px 12px;margin-top:8px">${JOURS.map(([k,l])=>{const d=DISPOS[k];return `<div class="jour"><b>${l}</b>
+    <select onchange="DISPOS['${k}'].m=this.value;dessinerDispos();sauverBrouillon()">
+      <option value="j" ${d.m==='j'?'selected':''}>✅ Toute la journée</option>
+      <option value="p" ${d.m==='p'?'selected':''}>🕒 Seulement de… à…</option>
+      <option value="n" ${d.m==='n'?'selected':''}>❌ Pas disponible</option></select>
+    ${d.m==='p'?`<div class="heures">de <input type="time" value="${d.de}" onchange="DISPOS['${k}'].de=this.value;sauverBrouillon()"> à <input type="time" value="${d.a}" onchange="DISPOS['${k}'].a=this.value;sauverBrouillon()"></div>`:''}</div>`;}).join('')}</div>`;
+}
+function dispoTexte(){ // format compact enregistré : lun:j|mar:11:00-15:00|mer:n…
+  if($('toutDispo').checked) return 'tout';
+  return JOURS.map(([k])=>{const d=DISPOS[k];return k+':'+(d.m==='p'?d.de+'-'+d.a:d.m);}).join('|');
+}
+function dispoResume(){
+  if($('toutDispo').checked) return 'Totalement disponible';
+  return JOURS.map(([k,l])=>{const d=DISPOS[k];return l.slice(0,3)+' '+(d.m==='j'?'journée':d.m==='n'?'—':d.de+'-'+d.a);}).join(', ');
+}
 const CHAMPS=['contratSouhaite','dispoDebut','dispoFin','dispoDetail','experience','motivation','nom','prenom','nomNaissance','naissance','lieuNaissance','deptNaissance','nationalite','nationaliteType','sejourNumero','sejourFin','pieceType','adresse','cp','ville','tel','email','secu','situation','mutuelleDispense','transport','urgenceNom','urgenceTel','parentNom','parentLien','parentTel','parentEmail','parentAdresse'];
 function collecte(){
   const c={}; CHAMPS.forEach(k=>c[k]=$(k).value.trim());
   c.nom=c.nom.toUpperCase(); c.civilite=radio('civ'); c.taille=radio('taille'); c.postes=cocheesPostes();
   c.secuAttente=$('secuAttente').checked?'oui':'non'; c.secu=c.secu.replace(/\s/g,'');
+  c.toutDispo=$('toutDispo').checked?'oui':'non'; c.dispoJours=dispoTexte();
   c.mineur=etat().mineur; c.age=age();
   return c;
 }
 function recap(){
   const c=collecte();
-  const l=[['Postes',c.postes.join(', ')],['Contrat',c.contratSouhaite],['Disponible',fr(c.dispoDebut)+(c.dispoFin?' → '+fr(c.dispoFin):'')],['Identité',`${c.civilite} ${c.prenom} ${c.nom}, né(e) le ${fr(c.naissance)} à ${c.lieuNaissance}`],['Adresse',`${c.adresse}, ${c.cp} ${c.ville}`],['Contact',`${c.tel} — ${c.email}`],['Documents',Object.keys(fichiers).length+' fichier(s)']];
+  const l=[['Postes',c.postes.join(', ')],['Contrat',c.contratSouhaite],['Disponible',fr(c.dispoDebut)+(c.dispoFin?' → '+fr(c.dispoFin):'')],['Dans la semaine',dispoResume()],['Identité',`${c.civilite} ${c.prenom} ${c.nom}, né(e) le ${fr(c.naissance)} à ${c.lieuNaissance}`],['Adresse',`${c.adresse}, ${c.cp} ${c.ville}`],['Contact',`${c.tel} — ${c.email}`],['Documents',Object.keys(fichiers).length+' fichier(s)']];
   $('recap').innerHTML=l.map(([a,b])=>`<div><b>${a} :</b> ${esc(b)}</div>`).join('');
 }
 function fr(d){return d?d.split('-').reverse().join('/'):'';}
@@ -433,6 +468,8 @@ function restaurerBrouillon(){
     if(c.civilite){const r=document.querySelector(`input[name=civ][value="${c.civilite}"]`); if(r) r.checked=true;}
     if(c.taille){const r=document.querySelector(`input[name=taille][value="${c.taille}"]`); if(r) r.checked=true;}
     $('secuAttente').checked=c.secuAttente==='oui';
+    $('toutDispo').checked=c.toutDispo==='oui';
+    if(c.dispoJours && c.dispoJours!=='tout') c.dispoJours.split('|').forEach(x=>{const[k,v]=[x.slice(0,3),x.slice(4)];if(!DISPOS[k])return;if(v==='j'||v==='n')DISPOS[k].m=v;else{const[de,a]=v.split('-');DISPOS[k]={m:'p',de,a};}});
   }catch(e){}
 }
 

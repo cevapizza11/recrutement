@@ -105,6 +105,17 @@ function _remuneration(D, n) {
   return `<h2>Article ${n} – Rémunération</h2><p>${detail}. Les heures supplémentaires éventuelles seront rémunérées ou récupérées conformément à la convention collective HCR.</p>
   <h2>Article ${n + 1} – Avantage en nature nourriture</h2><p>${_Il(D.c)} bénéficie des repas pris sur place pendant ses heures de présence, conformément à la convention collective HCR. Cet avantage en nature est évalué sur la base du minimum garanti (${_eur(D.P.mg)} par repas à la date du contrat) et figure sur le bulletin de paie.</p>`;
 }
+const _JOURS = [['lun', 'lundi'], ['mar', 'mardi'], ['mer', 'mercredi'], ['jeu', 'jeudi'], ['ven', 'vendredi'], ['sam', 'samedi'], ['dim', 'dimanche']];
+function _clauseTempsPartiel(D, n) {
+  const v = D.v, c = D.c, rep = v.repartition || {};
+  const lignes = _JOURS.map(([k, l]) => `<tr><td>${l}</td><td>${Number(rep[k]) ? String(rep[k]).replace('.', ',') + ' h' : 'repos'}</td></tr>`).join('');
+  const motif = { demande: `à la demande écrite et motivée ${c.civilite === 'Mme' ? 'de la salariée' : 'du salarié'} (contraintes personnelles ou cumul d'activités), annexée au présent contrat`, etudiant: `${c.civilite === 'Mme' ? 'la salariée' : 'le salarié'} étant étudiant(e) de moins de 26 ans`, court: 'le contrat étant d\'une durée au plus égale à sept jours' }[v.motif24];
+  return `<h2>Article ${n} – Travail à temps partiel</h2>
+  <p>${_Il(c)} est engagé(e) à <b>temps partiel</b>, pour une durée hebdomadaire de <b>${_v(v.heures)} heures</b>${Number(v.heures) < 24 && motif ? ', inférieure à la durée minimale légale de 24 heures, ' + motif : ''}. Conformément à l'article L.3123-6 du Code du travail, cette durée est répartie entre les jours de la semaine comme suit :</p>
+  <table><tr><th>Jour</th><th>Durée</th></tr>${lignes}</table>
+  <p>Les horaires de travail de chaque journée sont communiqués par écrit, par le planning affiché et transmis au moins 7 jours à l'avance. Cette répartition pourra être modifiée, sous réserve d'un délai de prévenance de 7 jours, dans les cas suivants : surcroît d'activité saisonnière, variation de la fréquentation liée aux conditions météorologiques ou aux événements de la station, absence d'un autre salarié.</p>
+  <p>${_Il(c)} pourra être amené(e) à effectuer des heures complémentaires dans la limite du dixième de la durée hebdomadaire prévue au contrat ; chacune d'elles donne lieu à une majoration de salaire de 10 %. Les heures complémentaires ne peuvent avoir pour effet de porter la durée du travail au niveau de la durée légale. ${_Il(c)} bénéficie des mêmes droits que les salariés à temps complet.</p>`;
+}
 function _clausesMineur(D, n) {
   return `<h2>Article ${n} – Dispositions propres au salarié mineur</h2>
   <p>${_Il(D.c)} étant âgé(e) de moins de 18 ans, l'employeur s'engage à respecter les règles protectrices applicables aux jeunes travailleurs, notamment : durée de travail limitée à 8 heures par jour et 35 heures par semaine ; pause d'au moins 30 minutes consécutives dès que le temps de travail quotidien atteint 4 h 30 ; repos quotidien d'au moins 12 heures consécutives ; deux jours de repos hebdomadaire consécutifs ; travail de nuit uniquement dans les limites des dérogations prévues par le Code du travail pour le secteur de la restauration. ${_Il(D.c)} ne sera pas affecté(e) au service ni à la préparation de boissons alcoolisées.</p>
@@ -129,6 +140,7 @@ function contratCDDSaison(D) {
   <p>${_Il(c)} exercera ses fonctions au restaurant « ${_v(E.enseigne)} », ${_v(E.lieu)}.</p>
   <h2>Article ${n++} – Durée et horaires de travail</h2>
   <p>La durée hebdomadaire de travail est fixée à <b>${_v(v.heures)} heures</b>. Les horaires sont fixés par le planning établi par l'employeur et communiqué à l'avance ; ils peuvent comprendre le travail en soirée, les week-ends et les jours fériés, compte tenu de l'activité saisonnière. ${_Il(c)} bénéficie des repos quotidien et hebdomadaire prévus par la loi et la convention collective HCR.</p>`;
+  if (Number(v.heures) < 35) h += _clauseTempsPartiel(D, n++);
   h += _remuneration(D, n); n += 2;
   h += `<h2>Article ${n++} – Congés payés et fin de contrat</h2>
   <p>${_Il(c)} acquiert des congés payés à raison de 2,5 jours ouvrables par mois de travail effectif. Les congés non pris à la fin du contrat donneront lieu au versement d'une indemnité compensatrice égale au dixième de la rémunération brute totale perçue. Conformément à l'article L.1243-10 du Code du travail, l'indemnité de fin de contrat n'est pas due pour un emploi à caractère saisonnier.</p>

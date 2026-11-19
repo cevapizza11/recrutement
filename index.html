@@ -108,7 +108,7 @@ table.pc td{padding:5px 4px;border-bottom:1px solid #242424}
 <body>
 <header>
   <img src="icon.svg" alt="">
-  <div><h1>Recrutement</h1><div class="v">Moule &amp; Smile · v.19/11/2026 09:31</div></div>
+  <div><h1>Recrutement</h1><div class="v">Moule &amp; Smile · v.19/11/2026 14:54</div></div>
   <div class="actions" id="hdrActions">
     <button class="ib" title="Tableau" onclick="vue('liste')">📋</button>
     <button class="ib" title="Ajouter une fiche" onclick="creerFiche()">＋</button>
@@ -136,7 +136,7 @@ const ETAPES=[
 ];
 const IDX=Object.fromEntries(ETAPES.map((e,i)=>[e.k,i]));
 const GRILLE=[['presentation','Présentation / ponctualité'],['motivation','Motivation'],['experience','Expérience'],['dispo','Disponibilités'],['equipe','Esprit d\'équipe'],['rush','Résistance au rush']];
-const CHECK_DEMARRAGE=[['accueil','Accueil et visite du restaurant'],['livret','Livret d\'accueil / règles de la maison remis'],['hygiene','Formation hygiène / HACCP de base'],['securite','Consignes de sécurité et plans d\'évacuation'],['pointeuse','Compte créé dans la Pointeuse (bouton ci-dessus)'],['planning','Ajouté(e) dans Planning & RH'],['caisse','Accès caisse / appli commande si besoin']];
+const CHECK_DEMARRAGE=[['accueil','Accueil et visite du restaurant'],['livret','Livret d\'accueil / règles de la maison remis'],['hygiene','Formation hygiène / HACCP de base'],['securite','Consignes de sécurité et plans d\'évacuation'],['pointeuse','Compte créé dans la Pointeuse (bouton ci-dessus)'],['planning','Ajouté(e) dans Planning & RH (même bouton)'],['caisse','Accès caisse / appli commande si besoin']];
 const ARTICLES_TENUE=['T-shirt Moule & Smile','Casquette','Tablier'];
 let S={cle:localStorage.getItem('rec_cle')||'',candidats:[],config:null,sheetUrl:'',driveUrl:'',vue:'liste',filtre:'actifs',recherche:'',id:null,demo:false};
 const $=id=>document.getElementById(id);
@@ -340,7 +340,7 @@ function renduFiche(){
   <div class="carte" style="margin-top:10px">
     <div class="tete"><div class="cand"><div class="av">${esc((c.prenom||'?')[0]+(c.nom||'?')[0])}</div></div>
       <div style="flex:1"><h2>${esc(c.prenom)} ${esc(c.nom)}</h2>
-      <div class="sous" style="color:var(--gris);font-size:13px">${esc((c.postes||[]).join(', '))} · souhaite : ${esc(c.contratSouhaite||'—')} · ${c.age?c.age+' ans':''}</div></div>
+      <div class="sous" style="color:var(--gris);font-size:13px">${esc((c.postes||[]).join(', '))} · souhaite : ${esc(c.contratSouhaite||'—')} · ${c.age?c.age+' ans':''}<br>🗓️ ${esc(resumeDispos(c))}</div></div>
       <select style="width:auto" onchange="changerStatut(this.value)">${[['en_cours','En cours'],['vivier','Vivier'],['refuse','Refusé'],['desiste','Désisté']].map(([k,n])=>`<option value="${k}" ${r.statut===k?'selected':''}>${n}</option>`).join('')}</select></div>
     <div class="contacts">
       <a class="btn petit" href="tel:${telIntl(c.tel)}">📞 Appeler</a>
@@ -377,7 +377,7 @@ function conditions(k,r){
   if(k==='recu'){}
   if(k==='contact'&&!s.contact?.date) manque.push('date du contact');
   if(k==='entretien'&&!s.entretien?.date) manque.push('date de l\'entretien');
-  if(k==='validation'){ if(v.decision!=='retenu') manque.push('décision « Retenu »'); if(!v.type) manque.push('type de contrat'); if(!v.debut) manque.push('date de début'); if(v.type!=='cdi_annualise'&&!v.fin) manque.push('date de fin'); if(!v.taux) manque.push('taux horaire'); }
+  if(k==='validation'){ if(v.decision!=='retenu') manque.push('décision « Retenu »'); if(!v.type) manque.push('type de contrat'); if(!v.debut) manque.push('date de début'); if(v.type!=='cdi_annualise'&&!v.fin) manque.push('date de fin'); if(!v.taux) manque.push('taux horaire'); if(v.type==='cdd_saison'&&Number(v.heures)<35){const tot=JOURS_D.reduce((a,[k])=>a+(Number((v.repartition||{})[k])||0),0);if(Math.abs(tot-Number(v.heures))>0.01)manque.push('répartition du temps partiel');if(Number(v.heures)<24&&!v.motif24)manque.push('motif moins de 24 h');} }
   if(k==='contrat'){ if(!(r.contrats||[]).some(x=>x.type===v.type)) manque.push('contrat enregistré en PDF'); if(!ct.signe) manque.push('contrat signé'); if(!ct.dpae) manque.push('DPAE'); if(!ct.mutuelle) manque.push('mutuelle (affiliation ou dispense)'); if(r.candidat.mineur&&!(r.docs||[]).some(d=>d.key==='autorisation')) manque.push('autorisation parentale'); }
   if(k==='tenue'&&!s.tenue?.date) manque.push('date de remise');
   if(k==='demarrage'){ if(!s.demarrage?.date) manque.push('date du 1er jour'); const nb=CHECK_DEMARRAGE.filter(([c])=>!s.demarrage?.checks?.[c]).length; if(nb) manque.push(nb+' point(s) de la check-list'); }
@@ -425,7 +425,8 @@ function etapeCandidature(r){
   <div class="g2">${champ('Mutuelle','candidat.mutuelleDispense','select',{choix:[['non','Affiliation à la mutuelle'],['oui','Demande de dispense']],rerender:1})}${champ('Situation','candidat.situation')}</div>
   <div class="g2">${champ('Urgence : nom','candidat.urgenceNom')}${champ('Urgence : téléphone','candidat.urgenceTel','tel')}</div>
   <div class="g3">${champ('Taille t-shirt','candidat.taille')}${champ('Disponible du','candidat.dispoDebut','date')}${champ('au','candidat.dispoFin','date')}</div>
-  ${champ('Disponibilités','candidat.dispoDetail','textarea')}
+  ${editeurDispos(r)}
+  ${champ('Précisions sur les disponibilités','candidat.dispoDetail','textarea')}
   ${champ('Expérience','candidat.experience')}${champ('Motivation','candidat.motivation','textarea')}
   ${c.mineur?`<div class="g2">${champ('Représentant légal','candidat.parentNom')}${champ('Lien','candidat.parentLien')}</div><div class="g2">${champ('Tél. représentant','candidat.parentTel','tel')}${champ('Mail représentant','candidat.parentEmail','email')}</div>`:''}
   </details>`;
@@ -533,6 +534,17 @@ function etapeValidation(r){
   const essaiDef=essaiParDefaut(v.type,v.debut,v.fin);
   if(!v.essaiManuel && v.essai!==essaiDef) set(r,'suivi.validation.essai',essaiDef);
   h+=`<div class="g2"><div><label class="l">Période d'essai (calcul auto : ${esc(essaiDef)})</label><input value="${esc(v.essai||'')}" onchange="const r=cur();set(r,'suivi.validation.essai',this.value);set(r,'suivi.validation.essaiManuel',true);sauver()"></div>${champ('Date de signature prévue','suivi.validation.dateSignature','date')}</div>`;
+  if(v.type!=='extra' && Number(v.heures)>0 && Number(v.heures)<35){
+    const rep=v.repartition||{}, tot=JOURS_D.reduce((a,[k])=>a+(Number(rep[k])||0),0);
+    h+=`<div class="carte" style="background:var(--carte2);margin-top:10px"><b style="color:var(--or)">Temps partiel : répartition des ${v.heures} h dans la semaine</b>
+    <p style="font-size:12.5px;color:var(--gris);margin:4px 0">Obligatoire dans le contrat à temps partiel. Dispos du candidat : ${esc(resumeDispos(r.candidat))}</p>
+    <div class="g3">${JOURS_D.map(([k,l])=>champ(l+' (h)','suivi.validation.repartition.'+k,'number',{step:'0.5',rerender:1})).join('')}</div>
+    <div class="alerte ${Math.abs(tot-Number(v.heures))<0.01?'info':'rouge'}">Total réparti : ${tot} h sur ${v.heures} h${Math.abs(tot-Number(v.heures))<0.01?' ✓':' — le total doit être égal aux heures du contrat'}</div>
+    ${v.type==='cdd_saison'?champ('Motif si moins de 24 h/semaine','suivi.validation.motif24','select',{choix:[['','—'],['demande','Demande écrite du salarié (contraintes personnelles ou cumul d\'emplois)'],['etudiant','Étudiant de moins de 26 ans'],['court','CDD de 7 jours ou moins']]}):''}
+    </div>`;
+    if(Number(v.heures)<24 && !v.motif24) h+=`<div class="alerte rouge">Moins de 24 h par semaine : c'est possible seulement sur demande écrite du salarié (contraintes personnelles ou cumul d'emplois), pour un étudiant de moins de 26 ans, ou pour un CDD de 7 jours maximum. Choisis le motif ci-dessus et garde la demande écrite dans le dossier.</div>`;
+    if(v.type==='cdi_annualise') h+=`<div class="alerte">CDI annualisé à temps partiel : la répartition se fait sur l'année, pas sur la semaine. Cas particulier à faire valider par Exco ; le contrat généré reste celui du temps plein annualisé.</div>`;
+  }
   if(Number(v.taux)<Number(P.tauxHoraire)) h+=`<div class="alerte rouge">Le taux horaire est inférieur au taux de référence des réglages (${P.tauxHoraire} €). Vérifie (abattement mineur possible seulement dans les cas prévus par la loi).</div>`;
   if(r.candidat.mineur && v.heures>35) h+=`<div class="alerte rouge">Candidat mineur : 35 h par semaine maximum.</div>`;
   if(v.type==='cdi_annualise' && !(cfg().employeur||{}).accordAnnualisation) h+=`<div class="alerte">Annualisation : il faut un accord collectif qui l'autorise (accord de branche HCR ou accord d'entreprise). Sans accord, la répartition des heures est limitée à 9 semaines. Indique l'accord dans Réglages → Employeur, après validation par Exco.</div>`;
@@ -590,27 +602,91 @@ function etapeDemarrage(r){
 const PT_CONFIG={apiKey:"AIzaSyBZ03rRzX8DL5Xgqn7U1p8PfiL83Zqtmvc",authDomain:"pointagemarmitebleue.firebaseapp.com",projectId:"pointagemarmitebleue",storageBucket:"pointagemarmitebleue.firebasestorage.app",messagingSenderId:"483578019330",appId:"1:483578019330:web:f15b69bfd7d652b773711b"};
 const PT_EMAIL="tmjumeaux@gmail.com";
 const PT_URL="https://cevapizza11.github.io/Pointeuse/";
+const PL_URL="https://cevapizza11.github.io/planningmarmite/";
 let ptApp=null;
 function pointeuseApp(){ if(!ptApp) ptApp=firebase.initializeApp(PT_CONFIG,'pointeuse'); return ptApp; }
 function ptUtilisateur(){ // attend la reprise de session mémorisée
   const auth=pointeuseApp().auth();
   return new Promise(ok=>{const stop=auth.onAuthStateChanged(u=>{stop();ok(u);});});
 }
-function donneesPointeuse(r){
-  const c=r.candidat, v=r.suivi.validation||{}, d=r.suivi.demarrage||{};
+// ---- Disponibilités : format compact du formulaire « lun:j|mar:11:00-15:00|mer:n » ou « tout »
+const JOURS_D=[['lun','Lundi'],['mar','Mardi'],['mer','Mercredi'],['jeu','Jeudi'],['ven','Vendredi'],['sam','Samedi'],['dim','Dimanche']];
+function lireDispos(c){
+  const o={}; JOURS_D.forEach(([k])=>o[k]={m:'j',de:'11:00',a:'15:00'});
+  if(!c.dispoJours||c.dispoJours==='tout'||c.toutDispo==='oui') return {tout:c.dispoJours==='tout'||c.toutDispo==='oui',jours:o,vide:!c.dispoJours&&c.toutDispo!=='oui'};
+  c.dispoJours.split('|').forEach(x=>{const k=x.slice(0,3),v=x.slice(4);if(!o[k])return;if(v==='j'||v==='n')o[k].m=v;else{const[de,a]=v.split('-');o[k]={m:'p',de,a};}});
+  return {tout:false,jours:o,vide:false};
+}
+function ecrireDispos(c,D){c.toutDispo=D.tout?'oui':'non';c.dispoJours=D.tout?'tout':JOURS_D.map(([k])=>{const d=D.jours[k];return k+':'+(d.m==='p'?d.de+'-'+d.a:d.m);}).join('|');}
+function resumeDispos(c){
+  const D=lireDispos(c); if(D.vide) return 'non renseignées'; if(D.tout) return 'totalement disponible';
+  return JOURS_D.map(([k,l])=>{const d=D.jours[k];return l.slice(0,3)+' '+(d.m==='j'?'journée':d.m==='n'?'—':d.de+'-'+d.a);}).join(' · ');
+}
+function m2(v,fin){const[h,mm]=String(v||'0:0').split(':').map(Number);let m=h*60+mm;if(fin&&m===0)m=1440;return m;}
+function dispoHPlanning(c){ // format de l'appli Planning : {lun:[{s,e}] en minutes}
+  const D=lireDispos(c); if(D.vide) return null;
+  const o={}; JOURS_D.forEach(([k])=>{const d=D.jours[k];o[k]=D.tout||d.m==='j'?[{s:360,e:1440}]:d.m==='n'?[]:[{s:m2(d.de),e:m2(d.a,true)}].filter(x=>x.e>x.s);});
+  return o;
+}
+function editeurDispos(r){
+  const c=r.candidat, D=lireDispos(c);
+  return `<b style="display:block;margin-top:10px;color:var(--or)">Disponibilités dans la semaine</b>
+  <label class="check"><input type="checkbox" ${D.tout?'checked':''} onchange="majDispo('tout',this.checked)"><span class="t">Totalement disponible</span></label>
+  ${D.tout?'':JOURS_D.map(([k,l])=>{const d=D.jours[k];return `<div class="g3" style="align-items:end"><div><label class="l">${l}</label><select onchange="majDispo('${k}.m',this.value)">${[['j','Toute la journée'],['p','De… à…'],['n','Pas dispo']].map(([a,b])=>`<option value="${a}" ${d.m===a?'selected':''}>${b}</option>`).join('')}</select></div>${d.m==='p'?`<div><input type="time" value="${d.de}" onchange="majDispo('${k}.de',this.value)"></div><div><input type="time" value="${d.a}" onchange="majDispo('${k}.a',this.value)"></div>`:'<div></div><div></div>'}</div>`;}).join('')}`;
+}
+function majDispo(ch,val){
+  const r=cur(), D=lireDispos(r.candidat);
+  if(ch==='tout') D.tout=val; else { const [k,f]=ch.split('.'); D.jours[k][f]=val; D.tout=false; }
+  ecrireDispos(r.candidat,D); sauver(); const y=scrollY; renduFiche(); scrollTo(0,y);
+}
+
+// ---- Données envoyées à la Pointeuse et à Planning & RH (même liste d'équipiers)
+const POSTES_PLANNING={moule:'Moule',frite:'Frite',bar:'Bar',salle:'Salle',plonge:'Plonge',sauce:'Sauce',dessert:'Dessert'};
+function postesPlanning(c){
+  const out=new Set();
+  (c.postes||[]).forEach(p=>{const l=p.toLowerCase();Object.keys(POSTES_PLANNING).forEach(k=>{if(l.startsWith(k))out.add(POSTES_PLANNING[k]);});});
+  return out.size?[...out]:['Salle'];
+}
+function dateFinEssai(v){
+  if(!v.debut||!v.essai||/aucune/i.test(v.essai)) return null;
+  const n=parseInt(v.essai,10); if(!n) return null;
+  const d=new Date(v.debut+'T12:00:00');
+  if(/mois/i.test(v.essai)){d.setMonth(d.getMonth()+n);d.setDate(d.getDate()-1);} else d.setDate(d.getDate()+n-1);
+  return d;
+}
+function heuresEquipier(r){
+  const v=r.suivi.validation||{};
   let h=Number(v.heures)||35;
-  if(v.type==='extra'){ // extra : temps partiel, heures = total des vacations prévues
+  if(v.type==='extra'){ // extra : total des vacations prévues
     const min=(v.missions||[]).reduce((a,m)=>{if(!m.debut||!m.fin)return a;const[x,y]=m.debut.split(':').map(Number),[z,w]=m.fin.split(':').map(Number);let d=(z*60+w)-(x*60+y);if(d<0)d+=1440;return a+d;},0);
     h=Math.min(34.5,Math.max(1,Math.round(min/30)/2));
   }
-  return { name:`${c.prenom||''} ${(c.nom||'').toUpperCase()}`.trim(), contractType:h>=35?'temps_plein':'temps_partiel', contractHours:h, plannedTime:d.heure||v.heureDebut||'' };
+  return h;
+}
+function donneesPointeuse(r){
+  const c=r.candidat, v=r.suivi.validation||{}, d=r.suivi.demarrage||{};
+  const h=heuresEquipier(r);
+  return { name:`${c.prenom||''} ${(c.nom||'').toUpperCase()}`.trim(), contractType:({cdd_saison:'CDD',extra:'Extra',cdi_annualise:'CDI'})[v.type]||'CDD', contractHours:h, plannedTime:d.heure||v.heureDebut||'' };
+}
+function donneesPlanning(r){
+  const c=r.candidat, v=r.suivi.validation||{}, TS=firebase.firestore.Timestamp;
+  const pub={postes:postesPlanning(c), contractTemplate:'equipier', dispoNotes:c.dispoDetail||''};
+  const dh=dispoHPlanning(c); if(dh) pub.dispoH=dh;
+  if(v.debut) pub.contractStart=TS.fromDate(new Date(v.debut+'T12:00:00'));
+  if(v.fin && v.type!=='cdi_annualise') pub.contractEnd=TS.fromDate(new Date(v.fin+'T12:00:00'));
+  const fe=dateFinEssai(v); if(fe) pub.trialEndDate=TS.fromDate(fe);
+  const priv={phone:c.tel||'',email:c.email||'',address:[c.adresse,[c.cp,c.ville].filter(Boolean).join(' ')].filter(Boolean).join(', '),nir:c.secuAttente==='oui'?'':(c.secu||'')};
+  if(v.type!=='extra'&&v.taux) priv.grossSalary=calculPaie(heuresEquipier(r),v.taux).mensuel;
+  return {pub,priv};
 }
 function blocPointeuse(r){
-  const d=r.suivi.demarrage||{}, p=donneesPointeuse(r);
-  if(d.pointeuseId) return `<div class="alerte info">⏱️ <b>${esc(p.name)}</b> est dans la Pointeuse (créé le ${fr(d.pointeuseDate)}). Il choisira son code PIN à son premier pointage. <a href="${PT_URL}" target="_blank" style="color:var(--or2)">Ouvrir la Pointeuse</a></div>`;
-  return `<div class="carte" style="background:var(--carte2)"><b style="color:var(--or)">⏱️ Pointeuse</b>
-    <p style="font-size:13px;margin:6px 0">Sera créé : <b>${esc(p.name)}</b> · ${p.contractType==='temps_plein'?'Temps plein':'Temps partiel'} ${p.contractHours} h/sem · heure prévue ${esc(p.plannedTime||'—')}</p>
-    <button class="btn plein" id="btnPt" onclick="creerDansPointeuse()">➕ Créer dans la Pointeuse</button></div>`;
+  const d=r.suivi.demarrage||{}, p=donneesPointeuse(r), c=r.candidat;
+  const infos=`<p style="font-size:13px;margin:6px 0"><b>${esc(p.name)}</b> · ${esc(p.contractType)} ${p.contractHours} h/sem · heure prévue ${esc(p.plannedTime||'—')}<br>Postes : ${esc(postesPlanning(c).join(', '))} · Dispos : ${esc(resumeDispos(c))}<br>+ téléphone, mail, adresse, n° Sécu, dates de contrat, fin d'essai, salaire</p>`;
+  if(d.pointeuseId) return `<div class="carte" style="background:var(--carte2)"><b style="color:var(--or)">⏱️ Pointeuse et 🗓️ Planning &amp; RH</b>
+    <div class="alerte info"><b>${esc(p.name)}</b> est dans la Pointeuse et dans Planning &amp; RH (créé le ${fr(d.pointeuseDate)}${d.planningDate?', infos Planning envoyées le '+fr(d.planningDate):''}). Il choisira son code PIN à son premier pointage.</div>${infos}
+    <div class="barre-act"><button class="btn petit" id="btnPt" onclick="creerDansPointeuse(true)">🔄 Renvoyer les infos à Planning</button><a class="btn petit" href="${PT_URL}" target="_blank">⏱️ Pointeuse</a><a class="btn petit" href="${PL_URL}" target="_blank">🗓️ Planning</a></div></div>`;
+  return `<div class="carte" style="background:var(--carte2)"><b style="color:var(--or)">⏱️ Pointeuse et 🗓️ Planning &amp; RH</b>${infos}
+    <button class="btn plein" id="btnPt" onclick="creerDansPointeuse()">➕ Créer dans la Pointeuse et Planning</button></div>`;
 }
 function demanderMdpPointeuse(msg){
   return new Promise(ok=>{
@@ -635,30 +711,41 @@ async function connecterPointeuse(){
   }
   return false;
 }
-async function creerDansPointeuse(){
+async function creerDansPointeuse(majSeule){
   const r=cur(), p=donneesPointeuse(r);
-  if(S.demo){ set(r,'suivi.demarrage.pointeuseId','demo');set(r,'suivi.demarrage.pointeuseDate',auj());set(r,'suivi.demarrage.checks.pointeuse',auj());renduFiche();return toast('Démo : créé (fictif)'); }
+  const lib=majSeule?'🔄 Renvoyer les infos à Planning':'➕ Créer dans la Pointeuse et Planning';
+  if(S.demo){ set(r,'suivi.demarrage.pointeuseId','demo');set(r,'suivi.demarrage.pointeuseDate',auj());set(r,'suivi.demarrage.planningDate',auj());set(r,'suivi.demarrage.checks.pointeuse',auj());set(r,'suivi.demarrage.checks.planning',auj());renduFiche();return toast('Démo : créé (fictif)'); }
   if(!p.name) return alert('Nom du candidat manquant.');
-  const b=$('btnPt'); if(b){b.disabled=true;b.textContent='Connexion…';}
+  const b=$('btnPt'); const fin=()=>{if(b){b.disabled=false;b.textContent=lib;}};
+  if(b){b.disabled=true;b.textContent='Connexion…';}
   try{
-    if(!(await connecterPointeuse())){ if(b){b.disabled=false;b.textContent='➕ Créer dans la Pointeuse';} return; }
+    if(!(await connecterPointeuse())) return fin();
     const db=pointeuseApp().firestore();
-    const ex=await db.collection('employees').where('name','==',p.name).get();
-    const actif=ex.docs.find(d=>d.data().active!==false);
-    let id;
-    if(actif){
-      if(!confirm(`${p.name} existe déjà dans la Pointeuse.\nLe relier à cette fiche sans créer de doublon ?`)){ if(b){b.disabled=false;b.textContent='➕ Créer dans la Pointeuse';} return; }
-      id=actif.id;
+    const {pub,priv}=donneesPlanning(r);
+    let id=(r.suivi.demarrage||{}).pointeuseId, relie=false;
+    if(!id){
+      const ex=await db.collection('employees').where('name','==',p.name).get();
+      const actif=ex.docs.find(d=>d.data().active!==false);
+      if(actif){
+        if(!confirm(`${p.name} existe déjà dans la Pointeuse / Planning.\nLe relier à cette fiche et compléter ses infos, sans créer de doublon ?`)) return fin();
+        id=actif.id; relie=true;
+        await db.collection('employees').doc(id).update({...p,...pub});
+      }else{
+        const ref=await db.collection('employees').add({...p,...pub,active:true,pinHash:null,createdAt:firebase.firestore.Timestamp.now()});
+        id=ref.id;
+      }
     }else{
-      const ref=await db.collection('employees').add({...p,active:true,pinHash:null,createdAt:firebase.firestore.Timestamp.now()});
-      id=ref.id;
+      await db.collection('employees').doc(id).update({...p,...pub});
     }
-    set(r,'suivi.demarrage.pointeuseId',id); set(r,'suivi.demarrage.pointeuseDate',auj()); set(r,'suivi.demarrage.checks.pointeuse',auj());
-    journal(actif?'Relié à la Pointeuse (déjà existant)':'Créé dans la Pointeuse'); sauver();
-    const y=scrollY; renduFiche(); scrollTo(0,y); toast(actif?'Relié à la Pointeuse ✓':'Équipier créé dans la Pointeuse ✓');
+    await db.collection('employees-private').doc(id).set(priv,{merge:true});
+    set(r,'suivi.demarrage.pointeuseId',id);
+    if(!r.suivi.demarrage.pointeuseDate) set(r,'suivi.demarrage.pointeuseDate',auj());
+    set(r,'suivi.demarrage.planningDate',auj());
+    set(r,'suivi.demarrage.checks.pointeuse',auj()); set(r,'suivi.demarrage.checks.planning',auj());
+    journal(majSeule?'Infos renvoyées à Planning & RH':relie?'Relié à la Pointeuse et Planning (déjà existant)':'Créé dans la Pointeuse et Planning & RH'); sauver();
+    const y=scrollY; renduFiche(); scrollTo(0,y); toast(majSeule?'Planning mis à jour ✓':'Créé dans la Pointeuse et Planning ✓');
   }catch(e){
-    alert('La Pointeuse a refusé : '+(e.message||e));
-    if(b){b.disabled=false;b.textContent='➕ Créer dans la Pointeuse';}
+    alert('Enregistrement refusé : '+(e.message||e)); fin();
   }
 }
 async function deconnecterPointeuse(){ try{ await pointeuseApp().auth().signOut(); toast('Pointeuse déconnectée sur cet appareil'); }catch(e){} }
@@ -729,7 +816,7 @@ function mailComptable(){
 }
 function copierPlanning(){
   const r=cur(), c=r.candidat, v=r.suivi.validation||{};
-  const t=`${c.prenom} ${c.nom}\nTél : ${c.tel}\nMail : ${c.email||''}\nPoste(s) : ${(c.postes||[]).join(', ')}\nContrat : ${TYPES_CONTRAT[v.type]?.court||''} — ${v.heures||''} h/sem\nDu ${fr(v.debut)}${v.fin?' au '+fr(v.fin):''}\nDisponibilités : ${c.dispoDetail||''}${c.mineur?'\n⚠️ Mineur : 8 h/jour et 35 h/semaine max, pas au bar':''}`;
+  const t=`${c.prenom} ${c.nom}\nTél : ${c.tel}\nMail : ${c.email||''}\nPoste(s) : ${(c.postes||[]).join(', ')}\nContrat : ${TYPES_CONTRAT[v.type]?.court||''} — ${v.heures||''} h/sem\nDu ${fr(v.debut)}${v.fin?' au '+fr(v.fin):''}\nDisponibilités : ${resumeDispos(c)}${c.dispoDetail?' — '+c.dispoDetail:''}${c.mineur?'\n⚠️ Mineur : 8 h/jour et 35 h/semaine max, pas au bar':''}`;
   navigator.clipboard.writeText(t).then(()=>toast('Fiche copiée ✓ — colle-la dans Planning & RH'));
 }
 async function supprimer(){
@@ -770,8 +857,9 @@ function renduReglages(){
     <li>🔴 <b>Titre de séjour</b> : fin de validité avant la fin du contrat ou dans moins de 30 jours.</li>
     <li>🟠 <b>Mineur</b> : autorisation parentale et pièce d'identité du représentant obligatoires ; 35 h/semaine maximum ; alerte si heures &gt; 35.</li>
     <li>🔴 <b>Taux horaire</b> : alerte si le taux saisi est inférieur au taux de référence (${P.tauxHoraire} €).</li>
+    <li>🔴 <b>Temps partiel</b> (CDD de moins de 35 h) : la répartition des heures par jour doit être saisie et son total égal aux heures du contrat ; en dessous de <b>24 h/semaine</b>, un motif est obligatoire (demande écrite du salarié, étudiant de moins de 26 ans, CDD de 7 jours maximum).</li>
     <li>🟠 <b>CDI annualisé</b> : rappel tant que l'accord collectif autorisant l'annualisation n'est pas renseigné.</li>
-    <li>🔒 <b>Passage d'étape</b> : chaque étape vérifie sa check-list (contact daté, entretien daté, décision + contrat + dates + taux, contrat PDF + signé + DPAE + mutuelle + autorisation parentale si mineur, tenue remise, check-list du premier jour). On peut forcer le passage après confirmation.</li>
+    <li>🔒 <b>Passage d'étape</b> : chaque étape vérifie sa check-list (contact daté, entretien daté, décision + contrat + dates + taux, répartition et motif si temps partiel, contrat PDF + signé + DPAE + mutuelle + autorisation parentale si mineur, tenue remise, check-list du premier jour). On peut forcer le passage après confirmation.</li>
   </ul></div>
   <div class="carte"><b style="color:var(--or)">Seuils</b><div class="g2">${ch('Délai pour contacter (heures)','seuils','contactHeures','number')}${ch('Délai de décision après entretien (jours)','seuils','decisionJours','number')}${ch('Alerte DPAE (jours avant le début)','seuils','dpaeJours','number')}${ch('Signature contrat extra (jours ouvrables)','seuils','contratExtraJours','number')}</div></div>
   <div class="carte"><b style="color:var(--or)">Employeur (repris dans les contrats)</b>
