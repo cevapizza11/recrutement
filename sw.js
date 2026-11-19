@@ -1,6 +1,6 @@
 // Service worker — Recrutement Moule & Smile
 // Changer le numéro de version à chaque livraison pour forcer la mise à jour.
-const CACHE = 'recrutement-v7-20261119-1505';
+const CACHE = 'recrutement-v8-20261119-1533';
 const FICHIERS = ['./', './index.html', './postuler.html', './contrats.js', './config.js', './manifest.json', './icon.svg', './icon-192.png'];
 
 self.addEventListener('install', e => {

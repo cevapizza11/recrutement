@@ -49,6 +49,7 @@ ol li,ul li{margin:3px 0}
 <div class="enc">« Tout le monde » est nécessaire pour que les candidats puissent envoyer leur dossier sans compte Google. Les actions admin (voir les dossiers, modifier, générer un contrat) sont protégées par la clé admin.</div>
 <h3>2.2 Mettre à jour le script plus tard</h3>
 <p>Après avoir modifié Code.gs : <b>Déployer › Gérer les déploiements › ✏️ › Version : Nouvelle version › Déployer</b>. L'adresse /exec ne change pas.</p>
+<div class="enc"><b>Version du script à avoir :</b> celle du <b>19/11/2026</b> (écrit en haut du fichier Code.gs). Elle permet à l'admin de récupérer la photo de l'équipier pour la Pointeuse. Avec une version plus ancienne, l'appli prévient et propose de créer l'équipier sans photo.</div>
 <h3>2.3 Première connexion à l'admin</h3>
 <p>Ouvre l'appli admin, tape la clé admin reçue par mail. Elle reste mémorisée sur l'appareil. Pour la changer : exécute la fonction <b>changerCleAdmin</b> dans le script (nouvelle clé envoyée par mail).</p>
 
@@ -68,8 +69,9 @@ ol li,ul li{margin:3px 0}
 <li><b>Postes</b> d'après ses choix (Moules › Moule, Frites › Frite, Bar, Salle, Plonge).</li>
 <li><b>Disponibilités</b> par jour (« toute la journée » = de 6 h à minuit dans Planning) et ses précisions.</li>
 <li><b>Infos RH</b> : téléphone, mail, adresse, n° de Sécurité sociale, salaire mensuel brut, date de début, date de fin (CDD/extra), fin de période d'essai.</li>
+<li>Sa <b>photo</b> (vignette carrée) : elle s'affiche sur l'écran de pointage à la place des initiales. Bouton « 📷 Changer la photo » pour en prendre une autre (elle est aussi rangée dans son dossier Drive).</li>
 <li>Le <b>code PIN</b> n'est pas créé : l'équipier le choisit à son premier pointage.</li></ul>
-<p>Le bouton <b>« 🔄 Renvoyer les infos à Planning »</b> met à jour l'équipier si tu as corrigé la fiche. La première fois sur un appareil, l'appli demande le mot de passe de la Pointeuse (compte tmjumeaux@gmail.com). Si un équipier du même nom existe déjà, l'appli propose de le relier au lieu de créer un doublon. Les cases « Pointeuse » et « Planning &amp; RH » de la check-list se cochent toutes seules. Réglages › « Déconnecter la Pointeuse » retire l'accès d'un appareil.</p>
+<p>Le bouton <b>« 🔄 Renvoyer les infos (Planning + photo) »</b> met à jour l'équipier si tu as corrigé la fiche. La première fois sur un appareil, l'appli demande le mot de passe de la Pointeuse (compte tmjumeaux@gmail.com). Si un équipier du même nom existe déjà, l'appli propose de le relier au lieu de créer un doublon. Les cases « Pointeuse » et « Planning &amp; RH » de la check-list se cochent toutes seules. Réglages › « Déconnecter la Pointeuse » retire l'accès d'un appareil.</p>
 <div class="enc">Le type de contrat (CDD, CDI, Extra…) est le même dans les deux applis. Depuis le 19/11/2026, la Pointeuse considère comme <b>temps partiel</b> tout contrat de moins de 35 h/semaine : l'alerte « heures complémentaires » (plus de 10 %) fonctionne donc pour tous les équipiers créés par le recrutement.</div>
 <h3>Messages types</h3>
 <p>Bouton « ✍️ Messages types » de la fiche : proposer un entretien (même texte que le mail de l'étape 2), pièces manquantes (avec le lien), bonne nouvelle, réponse négative, premier jour. Chaque message s'envoie par SMS, WhatsApp, mail ou se copie. Ils sont signés « Thomas MARTIN 06 63 09 74 82 ».</p>
@@ -120,6 +122,7 @@ ol li,ul li{margin:3px 0}
 <ul>
 <li>Pièces d'identité, RIB et numéros de Sécurité sociale sont uniquement dans ton Drive privé et ta Google Sheet. Ne partage jamais le dossier « Recrutement » en entier ; pour le comptable, partage seulement le dossier du salarié.</li>
 <li>Le candidat accepte la conservation de ses données pour 2 ans maximum sans embauche. Fais un tri chaque fin de saison : bouton « Supprimer la fiche » (fiche effacée, dossier Drive mis à la corbeille).</li>
+<li><b>Photo</b> : le candidat donne son accord en cochant une case dédiée (affichée dans sa fiche : « Accord photo »). Utilisation limitée aux outils internes ; s'il demande à la retirer, supprime-la dans la Pointeuse (Équipiers › Modifier › Retirer) et dans son dossier Drive.</li>
 <li>Ne transmets jamais la clé admin. Si elle a fuité : fonction <b>changerCleAdmin</b>.</li></ul>
 
 <h2>9. Dépannage</h2>

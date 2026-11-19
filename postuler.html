@@ -73,7 +73,7 @@ nav.bas .btn{flex:1;max-width:300px;padding:14px}
 <header>
   <img src="icon.svg" alt="">
   <h1>Rejoins l'équipe Moule &amp; Smile</h1>
-  <span class="v">v.19/11/2026 15:05</span>
+  <span class="v">v.19/11/2026 15:33</span>
 </header>
 <main>
   <div id="intro" class="intro"></div>
@@ -199,6 +199,7 @@ nav.bas .btn{flex:1;max-width:300px;padding:14px}
     <div class="bloc recap" id="recap"></div>
     <div class="bloc">
       <label class="coche"><input type="checkbox" id="certif"> Je certifie que les informations fournies sont exactes.</label>
+      <label class="coche"><input type="checkbox" id="photoOk"> J'autorise Moule &amp; Smile (SAS La Marmite Bleue) à utiliser la photo de moi jointe à ma candidature pour m'identifier sur ses outils internes : pointeuse, planning, fiche équipe. Elle n'est jamais publiée ni transmise à l'extérieur, et je peux demander à la retirer à tout moment.</label>
       <label class="coche"><input type="checkbox" id="rgpd"> J'accepte que mes données et documents soient conservés par SAS La Marmite Bleue (Moule &amp; Smile) uniquement pour gérer ma candidature et, si je suis embauché(e), mon contrat. Sans suite, ils sont supprimés au bout de 2 ans maximum. Je peux demander leur suppression à tout moment.</label>
       <input class="pot" id="pot" tabindex="-1" autocomplete="off">
       <div id="envoiEtat"></div>
@@ -227,6 +228,7 @@ let CFG = {
   saison:{debut:'2027-03-12',fin:'2027-10-31'}, enseigne:'Moule & Smile'
 };
 const TAILLES=['XS','S','M','L','XL','XXL','3XL'];
+const PHOTO={key:'photo',label:'Photo de toi (visage bien visible)',req:'oui'};
 const JOURS=[['lun','Lundi'],['mar','Mardi'],['mer','Mercredi'],['jeu','Jeudi'],['ven','Vendredi'],['sam','Samedi'],['dim','Dimanche']];
 let DISPOS={}; JOURS.forEach(([k])=>DISPOS[k]={m:'j',de:'11:00',a:'15:00'});
 
@@ -279,8 +281,10 @@ function majConditions(){
   $('blocSejour').classList.toggle('cache',!s.horsUE);
   dessinerPieces();
 }
+// La photo de l'équipier est toujours obligatoire (pointeuse, planning) — 19/11/2026
+function piecesAvecPhoto(){const l=CFG.pieces.filter(x=>x.key!=='photo');const i=l.findIndex(x=>x.key==='rib');l.splice(i<0?l.length:i+1,0,PHOTO);return l;}
 function piecesDemandees(s){
-  return CFG.pieces.filter(p=>{
+  return piecesAvecPhoto().filter(p=>{
     if(p.req==='hors_ue') return s.horsUE;
     if(p.req==='mineur') return s.mineur;
     if(p.req==='dispense') return s.dispense;
@@ -294,6 +298,7 @@ function dessinerPieces(){
   $('pieces').innerHTML = liste.length? liste.map(p=>`
     <div class="piece">
       <div class="nom">${esc(p.label)} ${p.obligatoire?'<span style="color:var(--or)">*</span>':'<small>facultatif</small>'}
+        ${p.key==='photo'?'<small>Un selfie de face, sans lunettes de soleil ni casquette. Elle servira à t\'identifier sur nos outils internes (pointeuse, planning).</small>':''}
         <small id="f_${p.key}">${fichiers[p.key]?'<span class="ok">✔ '+esc(fichiers[p.key].name)+' ('+Math.round(fichiers[p.key].taille/1024)+' Ko)</span>':''}</small></div>
       <label class="btn" style="margin:0">${fichiers[p.key]?'Changer':'📷 Ajouter'}<input type="file" accept="image/*,application/pdf" onchange="choisir(this,'${p.key}')"></label>
     </div>`).join('') : '<p>Tous les documents ont déjà été reçus 👍</p>';
@@ -385,7 +390,7 @@ function verifier(p){
     if(manque.length) return 'Il manque :\n'+manque.join('\n');
   }
   if(p===4){
-    if(!$('certif').checked||!$('rgpd').checked) return 'Coche les deux cases pour envoyer.';
+    if(!$('certif').checked||!$('photoOk').checked||!$('rgpd').checked) return 'Coche les trois cases pour envoyer.';
   }
   return null;
 }
@@ -412,6 +417,7 @@ function collecte(){
   const c={}; CHAMPS.forEach(k=>c[k]=$(k).value.trim());
   c.nom=c.nom.toUpperCase(); c.civilite=radio('civ'); c.taille=radio('taille'); c.postes=cocheesPostes();
   c.secuAttente=$('secuAttente').checked?'oui':'non'; c.secu=c.secu.replace(/\s/g,'');
+  c.accordPhoto=$('photoOk').checked?'oui':'non';
   c.toutDispo=$('toutDispo').checked?'oui':'non'; c.dispoJours=dispoTexte();
   c.mineur=etat().mineur; c.age=age();
   return c;

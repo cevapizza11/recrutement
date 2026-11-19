@@ -52,7 +52,7 @@ label.l{display:block;font-size:12.5px;color:var(--gris);margin:8px 0 3px}
 .compteurs button span{font-size:11.5px;color:var(--gris)}
 .compteurs button.on{border-color:var(--or);background:#211a09}
 .cand{display:flex;gap:12px;align-items:center;cursor:pointer}
-.cand .av{width:42px;height:42px;border-radius:50%;background:#2b2210;color:var(--or);display:flex;align-items:center;justify-content:center;font-weight:700;flex:none}
+.av{width:42px;height:42px;border-radius:50%;background:#2b2210;color:var(--or);display:flex;align-items:center;justify-content:center;font-weight:700;flex:none}
 .cand .info{flex:1;min-width:0}
 .cand .nom{font-weight:700}
 .cand .sous{font-size:12.5px;color:var(--gris)}
@@ -108,7 +108,7 @@ table.pc td{padding:5px 4px;border-bottom:1px solid #242424}
 <body>
 <header>
   <img src="icon.svg" alt="">
-  <div><h1>Recrutement</h1><div class="v">Moule &amp; Smile · v.19/11/2026 15:05</div></div>
+  <div><h1>Recrutement</h1><div class="v">Moule &amp; Smile · v.19/11/2026 15:33</div></div>
   <div class="actions" id="hdrActions">
     <button class="ib" title="Tableau" onclick="vue('liste')">📋</button>
     <button class="ib" title="Ajouter une fiche" onclick="creerFiche()">＋</button>
@@ -193,7 +193,8 @@ function sauver(){
 function cfg(){return S.config||{};}
 function piecesRequises(r){
   const c=r.candidat||{}, s={mineur:!!c.mineur,horsUE:c.nationaliteType==='hors_ue',dispense:c.mutuelleDispense==='oui',passeport:c.pieceType==='passeport'};
-  return (cfg().pieces||[]).filter(p=>{
+  const liste=(cfg().pieces||[]).filter(p=>p.key!=='photo').concat([{key:'photo',label:'Photo de l\'équipier',req:'oui'}]);
+  return liste.filter(p=>{
     if(p.req==='non') return false;
     if(p.req==='hors_ue') return s.horsUE; if(p.req==='mineur') return s.mineur; if(p.req==='dispense') return s.dispense;
     if(p.key==='id_verso'&&s.passeport) return false;
@@ -338,9 +339,9 @@ function renduFiche(){
   const al=alertes(r);
   let h=bandeauDemo()+`<button class="btn petit" onclick="vue('liste')">← Tableau</button>
   <div class="carte" style="margin-top:10px">
-    <div class="tete"><div class="cand"><div class="av">${esc((c.prenom||'?')[0]+(c.nom||'?')[0])}</div></div>
+    <div class="tete"><div class="cand"><div class="av" id="avFiche" style="width:64px;height:64px;overflow:hidden">${esc((c.prenom||'?')[0]+(c.nom||'?')[0])}</div></div>
       <div style="flex:1"><h2>${esc(c.prenom)} ${esc(c.nom)}</h2>
-      <div class="sous" style="color:var(--gris);font-size:13px">${esc((c.postes||[]).join(', '))} · souhaite : ${esc(c.contratSouhaite||'—')} · ${c.age?c.age+' ans':''}<br>🗓️ ${esc(resumeDispos(c))}</div></div>
+      <div class="sous" style="color:var(--gris);font-size:13px">${esc((c.postes||[]).join(', '))} · souhaite : ${esc(c.contratSouhaite||'—')} · ${c.age?c.age+' ans':''}<br>🗓️ ${esc(resumeDispos(c))}<br>📷 Accord photo (outils internes) : ${c.accordPhoto==='oui'?'oui':'<span style="color:#ff9b94">non donné</span>'}</div></div>
       <select style="width:auto" onchange="changerStatut(this.value)">${[['en_cours','En cours'],['vivier','Vivier'],['refuse','Refusé'],['desiste','Désisté']].map(([k,n])=>`<option value="${k}" ${r.statut===k?'selected':''}>${n}</option>`).join('')}</select></div>
     <div class="contacts">
       <a class="btn petit" href="tel:${telIntl(c.tel)}">📞 Appeler</a>
@@ -363,7 +364,7 @@ function renduFiche(){
   h+=`<div class="carte"><b style="color:var(--or)">Notes libres</b>${champ('','suivi.notes','textarea')}</div>
   <div class="carte journal"><b style="color:var(--or)">Historique</b>${(r.journal||[]).slice().reverse().map(j=>`<div>${frH(j.d)} — ${esc(j.t)}</div>`).join('')}</div>
   <div class="barre-act" style="margin-bottom:30px"><button class="btn petit" onclick="copierPlanning()">📋 Copier la fiche pour Planning &amp; RH</button><button class="btn petit rouge" onclick="supprimer()">🗑️ Supprimer la fiche</button></div>`;
-  $('app').innerHTML=h; lierChamps();
+  $('app').innerHTML=h; lierChamps(); afficherAvatarFiche(r);
 }
 function blocEtape(k,n,titre,corps){
   const r=cur(), i=IDX[r.etape], j=IDX[k];
@@ -679,12 +680,38 @@ function donneesPlanning(r){
   if(v.type!=='extra'&&v.taux) priv.grossSalary=calculPaie(heuresEquipier(r),v.taux).mensuel;
   return {pub,priv};
 }
+// ---- Photo de l'équipier (récupérée dans son dossier Drive par le script Google)
+const PHOTOS={};
+function docPhoto(r){return (r.docs||[]).filter(d=>d.key==='photo').slice(-1)[0];}
+function vignette(src){ // carré 240 px, JPEG léger, depuis une data URL
+  return new Promise((ok,ko)=>{const img=new Image();img.onload=()=>{const t=240,c=document.createElement('canvas');c.width=t;c.height=t;const m=Math.min(img.naturalWidth,img.naturalHeight),sx=(img.naturalWidth-m)/2,sy=Math.max(0,(img.naturalHeight-m)/2.4);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,t,t);x.drawImage(img,sx,sy,m,m,0,0,t,t);ok(c.toDataURL('image/jpeg',.8));};img.onerror=ko;img.src=src;});
+}
+async function chargerPhoto(r){
+  const d=docPhoto(r); if(!d) return null;
+  if(PHOTOS[d.id]!==undefined) return PHOTOS[d.id];
+  if(S.demo) return PHOTOS[d.id]=null;
+  try{ const j=await api('fichier',{id:r.id,fichierId:d.id}); PHOTOS[d.id]=await vignette(`data:${j.mime};base64,${j.data}`); }
+  catch(e){ PHOTOS[d.id]=null; console.warn('Photo :',e.message); if(/Action inconnue/.test(e.message)) PHOTOS._scriptAncien=true; }
+  return PHOTOS[d.id];
+}
+async function afficherAvatarFiche(r){
+  const ph=await chargerPhoto(r), el=document.getElementById('avFiche');
+  if(ph&&el&&cur()&&cur().id===r.id) el.innerHTML=`<img src="${ph}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+}
+async function changerPhoto(inp){
+  const f=inp.files[0]; if(!f) return;
+  const sel=document.getElementById('typeDoc'); if(sel){sel.value='photo';}
+  await ajoutDocTyped(f,'photo','Photo de l\'équipier');
+}
 function blocPointeuse(r){
   const d=r.suivi.demarrage||{}, p=donneesPointeuse(r), c=r.candidat;
-  const infos=`<p style="font-size:13px;margin:6px 0"><b>${esc(p.name)}</b> · ${esc(p.contractType)} ${p.contractHours} h/sem · heure prévue ${esc(p.plannedTime||'—')}<br>Postes : ${esc(postesPlanning(c).join(', '))} · Dispos : ${esc(resumeDispos(c))}<br>+ téléphone, mail, adresse, n° Sécu, dates de contrat, fin d'essai, salaire</p>`;
+  const aPhoto=!!docPhoto(r);
+  const photoBloc=`<div style="display:flex;align-items:center;gap:10px;margin:6px 0"><div class="av" id="avPt" style="width:56px;height:56px;overflow:hidden">${esc((c.prenom||'?')[0]+(c.nom||'?')[0])}</div><div style="font-size:13px">${aPhoto?'Photo envoyée avec la fiche ✓':'<span style="color:#ff9b94">Pas encore de photo</span>'}<br><label class="btn petit" style="margin-top:4px">📷 ${aPhoto?'Changer la photo':'Ajouter la photo'}<input type="file" class="cache" accept="image/*" onchange="changerPhoto(this)"></label></div></div>`;
+  setTimeout(async()=>{const ph=await chargerPhoto(r),el=document.getElementById('avPt');if(ph&&el)el.innerHTML=`<img src="${ph}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;},0);
+  const infos=photoBloc+`<p style="font-size:13px;margin:6px 0"><b>${esc(p.name)}</b> · ${esc(p.contractType)} ${p.contractHours} h/sem · heure prévue ${esc(p.plannedTime||'—')}<br>Postes : ${esc(postesPlanning(c).join(', '))} · Dispos : ${esc(resumeDispos(c))}<br>+ téléphone, mail, adresse, n° Sécu, dates de contrat, fin d'essai, salaire</p>`;
   if(d.pointeuseId) return `<div class="carte" style="background:var(--carte2)"><b style="color:var(--or)">⏱️ Pointeuse et 🗓️ Planning &amp; RH</b>
     <div class="alerte info"><b>${esc(p.name)}</b> est dans la Pointeuse et dans Planning &amp; RH (créé le ${fr(d.pointeuseDate)}${d.planningDate?', infos Planning envoyées le '+fr(d.planningDate):''}). Il choisira son code PIN à son premier pointage.</div>${infos}
-    <div class="barre-act"><button class="btn petit" id="btnPt" onclick="creerDansPointeuse(true)">🔄 Renvoyer les infos à Planning</button><a class="btn petit" href="${PT_URL}" target="_blank">⏱️ Pointeuse</a><a class="btn petit" href="${PL_URL}" target="_blank">🗓️ Planning</a></div></div>`;
+    <div class="barre-act"><button class="btn petit" id="btnPt" onclick="creerDansPointeuse(true)">🔄 Renvoyer les infos (Planning + photo)</button><a class="btn petit" href="${PT_URL}" target="_blank">⏱️ Pointeuse</a><a class="btn petit" href="${PL_URL}" target="_blank">🗓️ Planning</a></div></div>`;
   return `<div class="carte" style="background:var(--carte2)"><b style="color:var(--or)">⏱️ Pointeuse et 🗓️ Planning &amp; RH</b>${infos}
     <button class="btn plein" id="btnPt" onclick="creerDansPointeuse()">➕ Créer dans la Pointeuse et Planning</button></div>`;
 }
@@ -713,7 +740,7 @@ async function connecterPointeuse(){
 }
 async function creerDansPointeuse(majSeule){
   const r=cur(), p=donneesPointeuse(r);
-  const lib=majSeule?'🔄 Renvoyer les infos à Planning':'➕ Créer dans la Pointeuse et Planning';
+  const lib=majSeule?'🔄 Renvoyer les infos (Planning + photo)':'➕ Créer dans la Pointeuse et Planning';
   if(S.demo){ set(r,'suivi.demarrage.pointeuseId','demo');set(r,'suivi.demarrage.pointeuseDate',auj());set(r,'suivi.demarrage.planningDate',auj());set(r,'suivi.demarrage.checks.pointeuse',auj());set(r,'suivi.demarrage.checks.planning',auj());renduFiche();return toast('Démo : créé (fictif)'); }
   if(!p.name) return alert('Nom du candidat manquant.');
   const b=$('btnPt'); const fin=()=>{if(b){b.disabled=false;b.textContent=lib;}};
@@ -722,6 +749,10 @@ async function creerDansPointeuse(majSeule){
     if(!(await connecterPointeuse())) return fin();
     const db=pointeuseApp().firestore();
     const {pub,priv}=donneesPlanning(r);
+    const ph=await chargerPhoto(r);
+    if(ph) pub.photo=ph;
+    else if(PHOTOS._scriptAncien && !confirm('Le script Google n\'est pas encore à jour : la photo ne peut pas être récupérée.\nContinuer sans la photo ? (voir le guide § 2.2 pour mettre le script à jour)')) return fin();
+    else if(!docPhoto(r) && !confirm('Pas de photo dans le dossier. Continuer sans photo ?')) return fin();
     let id=(r.suivi.demarrage||{}).pointeuseId, relie=false;
     if(!id){
       const ex=await db.collection('employees').where('name','==',p.name).get();
@@ -784,7 +815,9 @@ async function enregistrerPdf(type){
 }
 async function ajoutDoc(inp){
   const f=inp.files[0]; if(!f) return;
-  const key=$('typeDoc').value, label=$('typeDoc').selectedOptions[0].text;
+  return ajoutDocTyped(f,$('typeDoc').value,$('typeDoc').selectedOptions[0].text);
+}
+async function ajoutDocTyped(f,key,label){
   toast('Envoi…');
   try{
     let data,mime=f.type,name=f.name;
