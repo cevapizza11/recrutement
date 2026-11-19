@@ -105,7 +105,7 @@ table.pc td{padding:5px 4px;border-bottom:1px solid #242424}
 <body>
 <header>
   <img src="icon.svg" alt="">
-  <div><h1>Recrutement</h1><div class="v">Moule &amp; Smile · v.19/11/2026 08:11</div></div>
+  <div><h1>Recrutement</h1><div class="v">Moule &amp; Smile · v.19/11/2026 08:27</div></div>
   <div class="actions" id="hdrActions">
     <button class="ib" title="Tableau" onclick="vue('liste')">📋</button>
     <button class="ib" title="Ajouter une fiche" onclick="creerFiche()">＋</button>
@@ -316,7 +316,7 @@ function messages(r){
   const c=r.candidat, s=r.suivi||{}, e=s.entretien||{}, v=s.validation||{}, d=s.demarrage||{};
   const lienComp=urlPostuler()+`?id=${r.id}&t=${r.jeton||''}`;
   return [
-    ['Proposer un entretien',`Bonjour ${c.prenom}, c'est Thomas de Moule & Smile. Merci pour ta candidature ! Es-tu disponible pour un entretien ${e.date?'le '+fr(e.date)+' à '+e.date.slice(11,16):'cette semaine'} au restaurant (1 boulevard de la Douane, Saint-Pierre-la-Mer) ?`+signature()],
+    ['Proposer un entretien',texteMailEntretien(r)],
     ['Pièces manquantes',`Bonjour ${c.prenom}, il manque encore quelques documents pour ton dossier Moule & Smile (${piecesManquantes(r).map(p=>p.label).join(', ')||'…'}). Tu peux les ajouter ici : ${lienComp}`+signature()],
     ['Bonne nouvelle (retenu)',`Bonjour ${c.prenom}, bonne nouvelle : tu es retenu(e) pour rejoindre l'équipe Moule & Smile${v.debut?' à partir du '+fr(v.debut):''} ! Je te recontacte pour la signature du contrat.`+signature()],
     ['Réponse négative',`Bonjour ${c.prenom}, merci pour ta candidature et le temps accordé. Nous ne pouvons malheureusement pas donner une suite favorable cette fois-ci, mais nous gardons ton profil si un poste se libère. Bonne continuation !`+signature()],
@@ -325,8 +325,11 @@ function messages(r){
 }
 function urlPostuler(){return location.origin+location.pathname.replace(/[^/]*$/,'')+'postuler.html';}
 
+let OUVERTS=null, FICHE_ID=null;
 function renduFiche(){
   const r=cur(); if(!r) return vue('liste');
+  OUVERTS = FICHE_ID===r.id && document.querySelector('details.etape') ? new Set([...document.querySelectorAll('details.etape[open]')].map(d=>d.id)) : null;
+  FICHE_ID=r.id;
   r.suivi=r.suivi||{};
   const c=r.candidat, i=IDX[r.etape], s=r.suivi, L=liens(r);
   const al=alertes(r);
@@ -362,7 +365,7 @@ function renduFiche(){
 function blocEtape(k,n,titre,corps){
   const r=cur(), i=IDX[r.etape], j=IDX[k];
   const cl=j<i?'fait':j===i?'cour':'';
-  const ouvert=j===i||(k==='recu'&&i===0);
+  const ouvert=OUVERTS?OUVERTS.has('et_'+k):(j===i||(k==='recu'&&i===0));
   return `<details class="etape ${cl}" id="et_${k}" ${ouvert?'open':''}><summary><span class="n">${j<i?'✓':n}</span><span style="flex:1">${titre}</span>${j<i?'<span class="badge vert">fait</span>':j===i?'<span class="badge or">en cours</span>':''}</summary><div class="corps">${corps}${j===i&&r.statut==='en_cours'&&k!=='enposte'?boutonSuivant(k):''}</div></details>`;
 }
 function conditions(k,r){
@@ -386,7 +389,7 @@ function boutonSuivant(k){
 function avancer(k){
   const r=cur(), m=conditions(k,r);
   if(m.length && !confirm('Il manque : '+m.join(', ')+'.\nPasser quand même à l\'étape suivante ?')) return;
-  r.etape=ETAPES[IDX[k]+1].k; journal('Étape : '+ETAPES[IDX[r.etape]].n); sauver(); renduFiche();
+  r.etape=ETAPES[IDX[k]+1].k; journal('Étape : '+ETAPES[IDX[r.etape]].n); sauver(); FICHE_ID=null; renduFiche();
   document.getElementById('et_'+r.etape)?.scrollIntoView({behavior:'smooth'});
 }
 function reculer(){const r=cur();r.etape=ETAPES[Math.max(0,IDX[r.etape]-1)].k;journal('Retour à l\'étape : '+ETAPES[IDX[r.etape]].n);sauver();renduFiche();}
@@ -426,9 +429,63 @@ function etapeCandidature(r){
 }
 // ---- Étape 2
 function etapeContact(r){
+  const ct=r.suivi.contact||{};
   return `<div class="g2">${champ('Date du contact','suivi.contact.date','date',{rerender:1})}${champ('Moyen','suivi.contact.moyen','select',{choix:[['',''],['Téléphone','Téléphone'],['SMS','SMS'],['WhatsApp','WhatsApp'],['Mail','Mail'],['Sur place','Sur place']]})}</div>
   ${champ('Résultat','suivi.contact.resultat','select',{choix:[['',''],['Entretien proposé','Entretien proposé'],['Pas de réponse — à relancer','Pas de réponse — à relancer'],['N\'est plus disponible','N\'est plus disponible']]})}
-  ${champ('Notes','suivi.contact.notes','textarea')}`;
+  ${champ('Notes','suivi.contact.notes','textarea')}
+  <div class="carte" style="background:var(--carte2);margin-top:12px">
+    <b style="color:var(--or)">✉️ Proposer un entretien par mail</b>
+    <p style="font-size:12.5px;color:var(--gris);margin:4px 0">Choisis la date (et un 2e créneau si tu veux) : le texte se met à jour tout seul. Tu peux aussi le retoucher avant l'envoi.</p>
+    ${champ('Créneau proposé','suivi.contact.propDate','datetime-local',{rerender:1})}${champ('2e créneau (facultatif)','suivi.contact.propDate2','datetime-local',{rerender:1})}
+    ${champ('Lieu','suivi.contact.propLieu','select',{choix:[['restaurant','Au restaurant'],['telephone','Par téléphone'],['visio','En visio']],rerender:1})}
+    <label class="l">Objet</label><input id="mailObjet" value="Moule &amp; Smile — proposition d'entretien">
+    <label class="l">Message</label><textarea id="mailEntretien" rows="14">${esc(texteMailEntretien(r))}</textarea>
+    <div class="barre-act">
+      ${r.candidat.email?`<button class="btn plein" onclick="envoyerMailEntretien('mail')">✉️ Ouvrir dans ma messagerie</button>`:'<span class="badge rouge">Pas d\'adresse mail</span>'}
+      <button class="btn petit" onclick="envoyerMailEntretien('sms')">💬 SMS</button>
+      <button class="btn petit" onclick="envoyerMailEntretien('wa')">🟢 WhatsApp</button>
+      <button class="btn petit" onclick="navigator.clipboard.writeText($('mailEntretien').value);toast('Copié ✓')">📋 Copier</button>
+    </div>
+  </div>`;
+}
+function creneauTexte(d){
+  if(!d) return '';
+  const x=new Date(d);
+  const j=x.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  return 'le '+j+' à '+d.slice(11,13)+'h'+d.slice(14,16);
+}
+function texteMailEntretien(r){
+  const c=r.candidat, ct=(r.suivi||{}).contact||{};
+  const c1=creneauTexte(ct.propDate)||'le ……… à ………', c2=creneauTexte(ct.propDate2);
+  const lieu={telephone:'par téléphone (je t\'appellerai au '+(c.tel||'numéro indiqué')+')',visio:'en visio (je t\'enverrai le lien la veille)'}[ct.propLieu]||'au restaurant :\nMoule & Smile — 1 boulevard de la Douane, 11560 Saint-Pierre-la-Mer';
+  return `Bonjour ${c.prenom||''},
+
+Merci pour ta candidature chez Moule & Smile !
+
+Je te propose un entretien ${c1}${c2?', ou si tu préfères '+c2:''}, ${lieu}.
+
+L'entretien dure environ 20 minutes : on parlera du poste, de tes disponibilités pour la saison et de ton expérience.
+
+Peux-tu me confirmer ta présence (ou me proposer un autre moment) par retour de mail ou par SMS ?
+
+À très vite,
+
+Thomas MARTIN
+06 63 09 74 82`;
+}
+function envoyerMailEntretien(canal){
+  const r=cur(), txt=$('mailEntretien').value, obj=$('mailObjet').value;
+  const ct=r.suivi.contact=r.suivi.contact||{};
+  if(!ct.date) ct.date=auj();
+  ct.moyen=ct.moyen||({mail:'Mail',sms:'SMS',wa:'WhatsApp'}[canal]);
+  ct.resultat='Entretien proposé';
+  if(ct.propDate && !(r.suivi.entretien||{}).date){ set(r,'suivi.entretien.date',ct.propDate); set(r,'suivi.entretien.lieu',{telephone:'Par téléphone',visio:'En visio'}[ct.propLieu]||'Au restaurant'); }
+  journal('Entretien proposé ('+({mail:'mail',sms:'SMS',wa:'WhatsApp'}[canal])+')'+(ct.propDate?' : '+frH(ct.propDate):''));
+  sauver();
+  const L=liens(r,txt);
+  if(canal==='mail') location.href=`mailto:${r.candidat.email}?subject=${encodeURIComponent(obj)}&body=${encodeURIComponent(txt)}`;
+  else window.open(canal==='sms'?L.sms:L.wa,'_blank');
+  setTimeout(()=>{const y=scrollY;renduFiche();scrollTo(0,y);},400);
 }
 // ---- Étape 3
 function etapeEntretien(r){
