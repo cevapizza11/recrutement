@@ -11,6 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <script src="config.js"></script>
 <script src="contrats.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -108,7 +109,7 @@ table.pc td{padding:5px 4px;border-bottom:1px solid #242424}
 <body>
 <header>
   <img src="icon.svg" alt="">
-  <div><h1>Recrutement</h1><div class="v">Moule &amp; Smile · v.19/11/2026 15:33</div></div>
+  <div><h1>Recrutement</h1><div class="v">Moule &amp; Smile · v.19/11/2026 16:20</div></div>
   <div class="actions" id="hdrActions">
     <button class="ib" title="Tableau" onclick="vue('liste')">📋</button>
     <button class="ib" title="Ajouter une fiche" onclick="creerFiche()">＋</button>
@@ -164,7 +165,7 @@ async function charger(){
   $('app').innerHTML='<div class="vide">Chargement…</div>';
   try{
     const j=await api('liste');
-    S.candidats=j.candidats; S.config=j.config; S.sheetUrl=j.sheetUrl; S.driveUrl=j.driveUrl;
+    S.candidats=j.candidats; S.config=j.config; S.sheetUrl=j.sheetUrl; S.driveUrl=j.driveUrl; S.registreUrl=j.registreUrl||'';
     rendu();
   }catch(e){
     if(/Clé/.test(e.message)){ localStorage.removeItem('rec_cle'); S.cle=''; return ecranLogin('Clé incorrecte.'); }
@@ -379,7 +380,7 @@ function conditions(k,r){
   if(k==='contact'&&!s.contact?.date) manque.push('date du contact');
   if(k==='entretien'&&!s.entretien?.date) manque.push('date de l\'entretien');
   if(k==='validation'){ if(v.decision!=='retenu') manque.push('décision « Retenu »'); if(!v.type) manque.push('type de contrat'); if(!v.debut) manque.push('date de début'); if(v.type!=='cdi_annualise'&&!v.fin) manque.push('date de fin'); if(!v.taux) manque.push('taux horaire'); if(v.type==='cdd_saison'&&Number(v.heures)<35){const tot=JOURS_D.reduce((a,[k])=>a+(Number((v.repartition||{})[k])||0),0);if(Math.abs(tot-Number(v.heures))>0.01)manque.push('répartition du temps partiel');if(Number(v.heures)<24&&!v.motif24)manque.push('motif moins de 24 h');} }
-  if(k==='contrat'){ if(!(r.contrats||[]).some(x=>x.type===v.type)) manque.push('contrat enregistré en PDF'); if(!ct.signe) manque.push('contrat signé'); if(!ct.dpae) manque.push('DPAE'); if(!ct.mutuelle) manque.push('mutuelle (affiliation ou dispense)'); if(r.candidat.mineur&&!(r.docs||[]).some(d=>d.key==='autorisation')) manque.push('autorisation parentale'); }
+  if(k==='contrat'){ if(!(r.contrats||[]).some(x=>x.type===v.type)) manque.push('contrat enregistré en PDF'); if(!ct.signe) manque.push('contrat signé'); if(!(r.docs||[]).some(d=>d.key==='contrat_signe')) manque.push('scan du contrat signé'); if(!(r.registre&&r.registre.no)) manque.push('inscription au registre'); if(!ct.dpae) manque.push('DPAE'); if(!ct.mutuelle) manque.push('mutuelle (affiliation ou dispense)'); if(r.candidat.mineur&&!(r.docs||[]).some(d=>d.key==='autorisation')) manque.push('autorisation parentale'); }
   if(k==='tenue'&&!s.tenue?.date) manque.push('date de remise');
   if(k==='demarrage'){ if(!s.demarrage?.date) manque.push('date du 1er jour'); const nb=CHECK_DEMARRAGE.filter(([c])=>!s.demarrage?.checks?.[c]).length; if(nb) manque.push(nb+' point(s) de la check-list'); }
   return manque;
@@ -563,17 +564,128 @@ function etapeContrat(r){
     ${r.candidat.mineur?`<button class="btn" onclick="apercu('autorisation')">👪 Autorisation parentale</button>`:''}
   </div>
   ${faits.map(f=>`<div class="doc">📄 <a href="${f.url}" target="_blank">${esc(f.nom)}</a><span class="badge">${frH(f.date)}</span></div>`).join('')}
-  ${caseC('Contrat signé par les deux parties','suivi.contrat.signe',v.type==='extra'?'À remettre au plus tard dans les 2 jours ouvrables suivant l\'embauche':'Avant le premier jour de travail')}
+  ${caseScan('Contrat signé par les deux parties','suivi.contrat.signe','contrat_signe','Contrat signé',v.type==='extra'?'À remettre au plus tard dans les 2 jours ouvrables suivant l\'embauche':'Avant le premier jour de travail')}
   ${caseC('DPAE faite','suivi.contrat.dpae','Sur net-entreprises.fr ou due.urssaf.fr, au plus tôt 8 jours avant et au plus tard juste avant l\'embauche')}
   ${ct.dpae?champ('N° de la DPAE','suivi.validation.dpaeNumero'):''}
   <div class="barre-act"><a class="btn petit" href="https://www.due.urssaf.fr" target="_blank">🌐 Faire la DPAE (URSSAF)</a></div>
   ${champ('Mutuelle santé','suivi.contrat.mutuelle','select',{choix:[['','—'],['affilie','Affilié(e) à la mutuelle de l\'entreprise'],['dispense','Dispense (justificatif reçu)']],rerender:1})}
-  ${caseC('Inscrit(e) au registre unique du personnel','suivi.contrat.registre')}
-  ${caseC('Visite d\'information et de prévention demandée','suivi.contrat.vip',r.candidat.mineur?'Mineur : avant l\'affectation au poste':'Dans les 3 mois suivant la prise de poste')}
-  ${caseC('Dossier transmis au comptable (paie)','suivi.contrat.comptable')}
+  ${blocRegistre(r)}
+  ${blocVisite(r)}
+  ${caseC('Dossier transmis au comptable (paie)','suivi.contrat.comptable','Il fait les bulletins de paie et la DSN : il lui faut le contrat, la DPAE, l\'identité, le n° de Sécu et le RIB pour créer le salarié dans son logiciel. Inutile si tu fais la paie toi-même.')}
   <div class="barre-act"><button class="btn petit" onclick="mailComptable()">✉️ Mail au comptable avec le dossier</button></div>`;
 }
 // ---- Étape 6
+// ---- Case « signé » + photo/scan du document signé rangé dans le dossier du candidat
+function caseScan(lbl,p,key,label,sous){
+  const r=cur(), doc=(r.docs||[]).filter(d=>d.key===key).slice(-1)[0];
+  return caseC(lbl,p,sous)+`<div style="margin:-2px 0 8px 30px">${doc?`<div class="doc">📄 <a href="${doc.url}" target="_blank">${esc(label)}</a><span class="badge vert">${fr(doc.date)}</span></div>`:''}
+    <label class="btn petit">📷 ${doc?'Reprendre':'Photographier / scanner'} le document signé<input type="file" class="cache" accept="image/*,application/pdf" multiple onchange="scannerSigne(this,'${key}','${esc(label)}','${p}')"></label>
+    <span style="font-size:12px;color:var(--gris)"> plusieurs pages : sélectionne toutes les photos, elles sont réunies en un PDF</span></div>`;
+}
+async function scannerSigne(inp,key,label,p){
+  const fs=[...inp.files]; if(!fs.length) return;
+  const r=cur(); toast('Préparation du PDF…');
+  try{
+    let data,mime,name;
+    if(fs.length===1 && fs[0].type==='application/pdf'){ mime='application/pdf'; name=fs[0].name; data=await new Promise((ok,ko)=>{const rd=new FileReader();rd.onload=()=>ok(String(rd.result).split(',')[1]);rd.onerror=ko;rd.readAsDataURL(fs[0]);}); }
+    else{
+      const {jsPDF}=window.jspdf; const pdf=new jsPDF({unit:'mm',format:'a4'});
+      for(let i=0;i<fs.length;i++){
+        if(!fs[i].type.startsWith('image/')) continue;
+        const im=await compresser(fs[i]); const src='data:image/jpeg;base64,'+im.data;
+        const dim=await new Promise(ok=>{const x=new Image();x.onload=()=>ok([x.naturalWidth,x.naturalHeight]);x.src=src;});
+        const k=Math.min(200/dim[0],287/dim[1]), w=dim[0]*k, h=dim[1]*k;
+        if(i) pdf.addPage(); pdf.addImage(src,'JPEG',(210-w)/2,(297-h)/2,w,h);
+      }
+      data=pdf.output('datauristring').split(',')[1]; mime='application/pdf'; name=label+'.pdf';
+    }
+    if(S.demo){ r.docs.push({key,label,url:'#',date:new Date().toISOString()}); }
+    else{ const j=await api('televerser',{id:r.id,fichiers:[{key,label,name,mime,data}]}); Object.assign(r,{docs:j.rec.docs,journal:j.rec.journal}); }
+    if(!get(r,p)) set(r,p,auj());
+    sauver(); const y=scrollY; renduFiche(); scrollTo(0,y); toast('Document signé rangé dans le dossier ✓');
+  }catch(e){ alert('Échec : '+e.message); }
+}
+// ---- Registre unique du personnel (onglet de la Google Sheet, rempli automatiquement)
+function entreeRegistre(r){
+  const c=r.candidat, v={...(r.suivi.validation||{})};
+  if(v.type==='extra'){const ms=(v.missions||[]).filter(m=>m.date).map(m=>m.date).sort();if(ms.length)v.debut=ms[0];}
+  const lib={cdd_saison:'CDD saisonnier',extra:'CDD d\'usage (extra)',cdi_annualise:'CDI'}[v.type]||'';
+  return {nom:(c.nom||'').toUpperCase(),prenoms:c.prenom||'',sexe:c.civilite==='Mme'?'F':'M',naissance:c.naissance||'',nationalite:c.nationalite||'',
+    emploi:v.poste||'Équipier(ère) polyvalent(e) de restauration',qualification:v.niveau||'',entree:v.debut||'',contrat:lib+(c.mineur?' — salarié mineur':''),
+    tempsPartiel:(v.type!=='extra'&&Number(v.heures)<35)?`Oui — ${v.heures} h/semaine`:'Non',
+    titre:c.nationaliteType==='hors_ue'?`Titre de séjour n° ${c.sejourNumero||'?'} (valable jusqu'au ${fr(c.sejourFin)})`:''};
+}
+let regEnCours=false;
+async function inscrireRegistre(auto){
+  const r=cur(); if(!r||regEnCours||(r.registre&&r.registre.no)) return;
+  if(S.demo){ r.registre={no:1,date:new Date().toISOString()}; renduFiche(); return; }
+  regEnCours=true;
+  try{ const j=await api('registre_inscrire',{id:r.id,entree:entreeRegistre(r)}); Object.assign(r,{registre:j.rec.registre,journal:j.rec.journal}); set(r,'suivi.contrat.registre',auj()); sauver(); const y=scrollY; renduFiche(); scrollTo(0,y); toast('Inscrit au registre du personnel ✓'); }
+  catch(e){ if(!auto||!/Action inconnue/.test(e.message)) alert('Registre : '+(/Action inconnue/.test(e.message)?'le script Google n\'est pas à jour (voir le guide § 2.2).':e.message)); }
+  regEnCours=false;
+}
+function blocRegistre(r){
+  const ct=r.suivi.contrat||{};
+  if(r.registre&&r.registre.no) return `<div class="check"><span style="font-size:18px">📒</span><span class="t">Inscrit(e) au registre du personnel — <b>n° ${r.registre.no}</b> le ${fr(r.registre.date)}${r.registre.sortie?' · sortie le '+fr(r.registre.sortie):''}<small>Inscription automatique ; corrections ajoutées sans effacer l'original.</small></span>${S.registreUrl?`<a class="btn petit" target="_blank" href="${S.registreUrl}">Voir</a>`:''}</div>`;
+  if(ct.signe&&ct.dpae) setTimeout(()=>inscrireRegistre(true),300);
+  return `<div class="check"><span style="font-size:18px">📒</span><span class="t">Registre du personnel<small>Inscription automatique dès que « contrat signé » et « DPAE faite » sont cochés.</small></span><button class="btn petit" onclick="inscrireRegistre()">Inscrire maintenant</button></div>`;
+}
+async function inscrireSortie(){
+  const r=cur(), d=(r.suivi.sortie||{}).date; if(!d) return alert('Indique la date de sortie.');
+  if(S.demo){ r.registre.sortie=d; renduFiche(); return; }
+  try{ const j=await api('registre_sortie',{id:r.id,dateSortie:d}); Object.assign(r,{registre:j.rec.registre,journal:j.rec.journal}); sauver(); renduFiche(); toast('Sortie inscrite au registre ✓'); }catch(e){alert(e.message);}
+}
+// ---- Demande de visite d'information et de prévention (mail au service de santé au travail + preuve PDF)
+function texteVip(r){
+  const c=r.candidat, v=r.suivi.validation||{}, E=cfg().employeur||{};
+  const contrat=(TYPES_CONTRAT[v.type]||{}).court||'';
+  return {sujet:`Demande de visite d'information et de prévention — ${c.prenom} ${(c.nom||'').toUpperCase()} — ${E.raison||''}`,
+  corps:`Bonjour,
+
+En tant qu'adhérent (${E.raison||''}${E.siret?', SIRET '+E.siret:''}, restaurant « ${E.enseigne||''} », ${E.lieu||''}), je vous informe de l'embauche suivante et vous demande d'organiser la visite d'information et de prévention :
+
+- Salarié : ${c.civilite||''} ${c.prenom||''} ${(c.nom||'').toUpperCase()}
+- Né(e) le : ${fr(c.naissance)} à ${c.lieuNaissance||''}
+- N° de Sécurité sociale : ${c.secuAttente==='oui'?'en cours d\'attribution':(c.secu||'')}
+- Poste : ${v.poste||'Équipier(ère) polyvalent(e) de restauration'}
+- Contrat : ${contrat}${v.fin?' du '+fr(v.debut)+' au '+fr(v.fin):' à partir du '+fr(v.debut)} — ${v.type==='extra'?'vacations ponctuelles':(v.heures||'')+' h/semaine'}
+- Date d'embauche : ${fr(v.debut)}${c.mineur?'\n- ⚠️ Salarié mineur : la visite doit avoir lieu AVANT son affectation au poste.':''}
+- Travail de nuit : non
+- Téléphone du salarié : ${c.tel||''}
+
+Merci de m'indiquer la date et l'heure du rendez-vous.
+
+Bien cordialement,
+
+Thomas MARTIN
+${E.raison||''}
+06 63 09 74 82`};
+}
+function blocVisite(r){
+  const v=r.suivi.validation||{}, c=r.candidat;
+  const jours=v.debut&&v.fin?Math.round((new Date(v.fin)-new Date(v.debut))/86400000)+1:null;
+  const note=c.mineur?'Mineur : visite AVANT l\'affectation au poste.':(jours!==null&&jours<45)?'Contrat de moins de 45 jours : en saisonnier, pas de visite individuelle obligatoire (le service de santé organise des actions collectives). Tu peux quand même déclarer l\'embauche.':'À faire dans les 3 mois suivant la prise de poste.';
+  if(r.vip) return `<div class="check"><span style="font-size:18px">🩺</span><span class="t">Demande de visite envoyée le ${frH(r.vip.date)} à ${esc(r.vip.to)}<small>${note} Preuve PDF rangée dans le dossier. Coche quand la visite a eu lieu.</small></span><a class="btn petit" target="_blank" href="${r.vip.url}">Preuve</a></div>${caseC('Visite effectuée (attestation de suivi reçue)','suivi.contrat.vipFaite')}`;
+  return `<div class="check"><span style="font-size:18px">🩺</span><span class="t">Visite d'information et de prévention<small>${note}</small></span><button class="btn petit" onclick="modaleVip()">📨 Demander la visite</button></div>`;
+}
+function modaleVip(){
+  const r=cur(), E=cfg().employeur||{}, t=texteVip(r);
+  $('modale').innerHTML=`<div class="modale" onclick="if(event.target===this)fermer()"><div class="boite"><div class="bt"><b>Demande de visite — service de santé au travail</b><button class="ib" onclick="fermer()">✕</button></div><div class="bc">
+  ${E.santeTravailEmail?'':'<div class="alerte rouge">Indique l\'e-mail de ton service de santé au travail dans Réglages › Employeur (ou tape-le ci-dessous).</div>'}
+  <p style="font-size:12.5px;color:var(--gris)">Le mail part de ton compte Google, tu en reçois une copie, et une preuve PDF horodatée est rangée dans le dossier du candidat. Si ton service passe par son site adhérent, déclare l'embauche là-bas et utilise ce mail comme trace.</p>
+  <label class="l">À</label><input id="vipTo" value="${esc(E.santeTravailEmail||'')}">
+  <label class="l">Objet</label><input id="vipSujet" value="${esc(t.sujet)}">
+  <label class="l">Message</label><textarea id="vipCorps" rows="16">${esc(t.corps)}</textarea></div>
+  <div class="bt"><button class="btn plein" id="btnVip" onclick="envoyerVip()">📨 Envoyer la demande</button></div></div></div>`;
+}
+async function envoyerVip(){
+  const r=cur(); const b=$('btnVip'); b.disabled=true; b.textContent='Envoi…';
+  if(S.demo){ r.vip={date:new Date().toISOString(),to:$('vipTo').value,url:'#'}; set(r,'suivi.contrat.vip',auj()); fermer(); renduFiche(); return; }
+  try{ const j=await api('mail_vip',{id:r.id,to:$('vipTo').value,sujet:$('vipSujet').value,corps:$('vipCorps').value});
+    Object.assign(r,{vip:j.rec.vip,contrats:j.rec.contrats,journal:j.rec.journal}); set(r,'suivi.contrat.vip',auj()); sauver(); fermer(); renduFiche(); toast('Demande envoyée, preuve rangée ✓'); }
+  catch(e){ alert(/Action inconnue/.test(e.message)?'Le script Google n\'est pas à jour (voir le guide § 2.2).':e.message); b.disabled=false; b.textContent='📨 Envoyer la demande'; }
+}
+
 function etapeTenue(r){
   const t=r.suivi.tenue||{};
   if(!t.articles){ set(r,'suivi.tenue.articles',ARTICLES_TENUE.map((n,k)=>({nom:n,taille:k===0?(r.candidat.taille||''):'',qte:k===0?2:1}))); }
@@ -582,7 +694,7 @@ function etapeTenue(r){
   <div class="barre-act"><button class="btn petit" onclick="cur().suivi.tenue.articles.push({nom:'',taille:'',qte:1});sauver();renduFiche()">➕ Article</button></div>
   <div class="g2">${champ('Date de remise','suivi.tenue.date','date',{rerender:1})}<div></div></div>
   <div class="barre-act"><button class="btn" onclick="apercu('tenue')">📝 Bon de remise de tenue</button></div>
-  ${caseC('Bon de remise signé','suivi.tenue.bonSigne')}`;
+  ${caseScan('Bon de remise signé','suivi.tenue.bonSigne','tenue_signee','Bon de tenue signé')}`;
 }
 // ---- Étape 7
 function etapeDemarrage(r){
@@ -593,7 +705,10 @@ function etapeDemarrage(r){
   <div class="barre-act"><button class="btn petit" onclick="partagerTexte(messages(cur())[4][1])">📤 Envoyer le message « premier jour »</button></div>
   ${blocPointeuse(r)}
   ${CHECK_DEMARRAGE.map(([k,l])=>caseC(l,'suivi.demarrage.checks.'+k)).join('')}
-  ${champ('Bilan de fin de période d\'essai','suivi.demarrage.bilan','textarea')}`;
+  ${champ('Bilan de fin de période d\'essai','suivi.demarrage.bilan','textarea')}
+  <div class="carte" style="background:var(--carte2);margin-top:10px"><b style="color:var(--or)">📒 Départ de l'équipier</b>
+  <p style="font-size:12.5px;color:var(--gris);margin:4px 0">À remplir à la fin du contrat : la date de sortie est ajoutée au registre du personnel.</p>
+  <div class="g2">${champ('Date de sortie','suivi.sortie.date','date')}<div style="display:flex;align-items:end"><button class="btn petit" onclick="inscrireSortie()" ${r.registre&&r.registre.no?'':'disabled'}>Inscrire la sortie au registre</button></div></div></div>`;
 }
 
 // =====================================================================
@@ -683,8 +798,8 @@ function donneesPlanning(r){
 // ---- Photo de l'équipier (récupérée dans son dossier Drive par le script Google)
 const PHOTOS={};
 function docPhoto(r){return (r.docs||[]).filter(d=>d.key==='photo').slice(-1)[0];}
-function vignette(src){ // carré 240 px, JPEG léger, depuis une data URL
-  return new Promise((ok,ko)=>{const img=new Image();img.onload=()=>{const t=240,c=document.createElement('canvas');c.width=t;c.height=t;const m=Math.min(img.naturalWidth,img.naturalHeight),sx=(img.naturalWidth-m)/2,sy=Math.max(0,(img.naturalHeight-m)/2.4);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,t,t);x.drawImage(img,sx,sy,m,m,0,0,t,t);ok(c.toDataURL('image/jpeg',.8));};img.onerror=ko;img.src=src;});
+function vignette(src){ // photo entière (pas recadrée), 360 px max, JPEG léger
+  return new Promise((ok,ko)=>{const img=new Image();img.onload=()=>{const k=Math.min(1,360/Math.max(img.naturalWidth,img.naturalHeight)),w=Math.round(img.naturalWidth*k),h=Math.round(img.naturalHeight*k),c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(img,0,0,w,h);ok(c.toDataURL('image/jpeg',.8));};img.onerror=ko;img.src=src;});
 }
 async function chargerPhoto(r){
   const d=docPhoto(r); if(!d) return null;
@@ -696,7 +811,7 @@ async function chargerPhoto(r){
 }
 async function afficherAvatarFiche(r){
   const ph=await chargerPhoto(r), el=document.getElementById('avFiche');
-  if(ph&&el&&cur()&&cur().id===r.id) el.innerHTML=`<img src="${ph}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  if(ph&&el&&cur()&&cur().id===r.id) el.innerHTML=`<img src="${ph}" alt="" style="width:100%;height:100%;object-fit:contain;background:#222">`;
 }
 async function changerPhoto(inp){
   const f=inp.files[0]; if(!f) return;
@@ -707,7 +822,7 @@ function blocPointeuse(r){
   const d=r.suivi.demarrage||{}, p=donneesPointeuse(r), c=r.candidat;
   const aPhoto=!!docPhoto(r);
   const photoBloc=`<div style="display:flex;align-items:center;gap:10px;margin:6px 0"><div class="av" id="avPt" style="width:56px;height:56px;overflow:hidden">${esc((c.prenom||'?')[0]+(c.nom||'?')[0])}</div><div style="font-size:13px">${aPhoto?'Photo envoyée avec la fiche ✓':'<span style="color:#ff9b94">Pas encore de photo</span>'}<br><label class="btn petit" style="margin-top:4px">📷 ${aPhoto?'Changer la photo':'Ajouter la photo'}<input type="file" class="cache" accept="image/*" onchange="changerPhoto(this)"></label></div></div>`;
-  setTimeout(async()=>{const ph=await chargerPhoto(r),el=document.getElementById('avPt');if(ph&&el)el.innerHTML=`<img src="${ph}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;},0);
+  setTimeout(async()=>{const ph=await chargerPhoto(r),el=document.getElementById('avPt');if(ph&&el)el.innerHTML=`<img src="${ph}" alt="" style="width:100%;height:100%;object-fit:contain;background:#222">`;},0);
   const infos=photoBloc+`<p style="font-size:13px;margin:6px 0"><b>${esc(p.name)}</b> · ${esc(p.contractType)} ${p.contractHours} h/sem · heure prévue ${esc(p.plannedTime||'—')}<br>Postes : ${esc(postesPlanning(c).join(', '))} · Dispos : ${esc(resumeDispos(c))}<br>+ téléphone, mail, adresse, n° Sécu, dates de contrat, fin d'essai, salaire</p>`;
   if(d.pointeuseId) return `<div class="carte" style="background:var(--carte2)"><b style="color:var(--or)">⏱️ Pointeuse et 🗓️ Planning &amp; RH</b>
     <div class="alerte info"><b>${esc(p.name)}</b> est dans la Pointeuse et dans Planning &amp; RH (créé le ${fr(d.pointeuseDate)}${d.planningDate?', infos Planning envoyées le '+fr(d.planningDate):''}). Il choisira son code PIN à son premier pointage.</div>${infos}
@@ -891,6 +1006,9 @@ function renduReglages(){
     <li>🟠 <b>Mineur</b> : autorisation parentale et pièce d'identité du représentant obligatoires ; 35 h/semaine maximum ; alerte si heures &gt; 35.</li>
     <li>🔴 <b>Taux horaire</b> : alerte si le taux saisi est inférieur au taux de référence (${P.tauxHoraire} €).</li>
     <li>🔴 <b>Temps partiel</b> (CDD de moins de 35 h) : la répartition des heures par jour doit être saisie et son total égal aux heures du contrat ; en dessous de <b>24 h/semaine</b>, un motif est obligatoire (demande écrite du salarié, étudiant de moins de 26 ans, CDD de 7 jours maximum).</li>
+    <li>📄 <b>Documents signés</b> : le passage de l'étape Contrat exige le scan du contrat signé (photo ou PDF rangé dans le dossier).</li>
+    <li>📒 <b>Registre du personnel</b> : inscription automatique dès que contrat signé + DPAE sont cochés ; obligatoire pour passer l'étape Contrat.</li>
+    <li>🩺 <b>Visite santé au travail</b> : mineur avant l'affectation ; sinon dans les 3 mois ; saisonnier de moins de 45 jours : pas de visite individuelle obligatoire.</li>
     <li>🟠 <b>CDI annualisé</b> : rappel tant que l'accord collectif autorisant l'annualisation n'est pas renseigné.</li>
     <li>🔒 <b>Passage d'étape</b> : chaque étape vérifie sa check-list (contact daté, entretien daté, décision + contrat + dates + taux, répartition et motif si temps partiel, contrat PDF + signé + DPAE + mutuelle + autorisation parentale si mineur, tenue remise, check-list du premier jour). On peut forcer le passage après confirmation.</li>
   </ul></div>
@@ -904,7 +1022,8 @@ function renduReglages(){
   <div class="g2">${ch('Enseigne','employeur','enseigne')}${ch('Ville de signature','employeur','villeSignature')}</div>
   ${ch('Lieu de travail','employeur','lieu')}
   <div class="g2">${ch('Caisse de retraite complémentaire','employeur','retraite')}${ch('Organisme de prévoyance','employeur','prevoyance')}</div>
-  <div class="g2">${ch('Mutuelle santé','employeur','mutuelle')}${ch('Service de santé au travail','employeur','santeTravail')}</div>
+  <div class="g2">${ch('Mutuelle santé','employeur','mutuelle')}${ch('Service de santé au travail (nom)','employeur','santeTravail')}</div>
+  ${ch('E-mail du service de santé au travail (demandes de visite)','employeur','santeTravailEmail')}
   ${ch('Accord autorisant l\'annualisation (CDI)','employeur','accordAnnualisation')}</div>
   <div class="carte"><b style="color:var(--or)">Paie par défaut</b><div class="g2">${ch('Taux horaire brut (€) — SMIC 12,31 € depuis le 1er juin 2026','paie','tauxHoraire','number','0.01')}${ch('Minimum garanti repas (€)','paie','mg','number','0.01')}</div><div class="g2">${ch('Heures par semaine','paie','heuresHebdo','number','0.5')}${ch('Classification HCR','paie','niveau')}</div></div>
   <div class="carte"><b style="color:var(--or)">Formulaire candidat</b>
@@ -915,7 +1034,7 @@ function renduReglages(){
   <b style="display:block;margin-top:10px">Pièces demandées</b>
   <table class="pc">${(C.pieces||[]).map((p,k)=>`<tr><td><input value="${esc(p.label)}" onchange="S.config.pieces[${k}].label=this.value;sauverCfg()"></td><td style="width:170px"><select onchange="S.config.pieces[${k}].req=this.value;sauverCfg()">${[['oui','Obligatoire'],['non','Facultative'],['hors_ue','Si hors UE'],['mineur','Si mineur'],['dispense','Si dispense mutuelle']].map(([a,b])=>`<option value="${a}" ${p.req===a?'selected':''}>${b}</option>`).join('')}</select></td></tr>`).join('')}</table></div>
   <div class="carte"><b style="color:var(--or)">Liens</b><div class="barre-act">
-    ${S.sheetUrl?`<a class="btn petit" target="_blank" href="${S.sheetUrl}">📊 Tableau Google Sheet</a>`:''}${S.driveUrl?`<a class="btn petit" target="_blank" href="${S.driveUrl}">📁 Dossier Drive</a>`:''}
+    ${S.sheetUrl?`<a class="btn petit" target="_blank" href="${S.sheetUrl}">📊 Tableau Google Sheet</a>`:''}${S.driveUrl?`<a class="btn petit" target="_blank" href="${S.driveUrl}">📁 Dossier Drive</a>`:''}${S.registreUrl?`<a class="btn petit" target="_blank" href="${S.registreUrl}">📒 Registre du personnel</a>`:''}
     <a class="btn petit" target="_blank" href="guide-recrutement.pdf">📘 Guide PDF</a>
     <button class="btn petit" onclick="deconnecterPointeuse()">⏱️ Déconnecter la Pointeuse</button><button class="btn petit rouge" onclick="localStorage.removeItem('rec_cle');S.cle='';charger()">Se déconnecter</button></div></div>`;
 }

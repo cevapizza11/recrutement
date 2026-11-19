@@ -33,7 +33,8 @@ ol li,ul li{margin:3px 0}
 <tr><td>Appli admin (suivi)</td><td>cevapizza11.github.io/recrutement/ (aussi depuis la page Outils, tuile « Recrutement »)</td></tr>
 <tr><td>Documents des candidats</td><td>Google Drive › Recrutement Moule &amp; Smile › Candidats › NOM Prénom — date</td></tr>
 <tr><td>Tableau récapitulatif</td><td>Google Sheet « Suivi recrutement Moule &amp; Smile » (même dossier Drive)</td></tr>
-<tr><td>Contrats et bons en PDF</td><td>Dans le dossier Drive du candidat</td></tr>
+<tr><td>Contrats et bons en PDF</td><td>Dans le dossier Drive du candidat (avec les versions signées scannées et la preuve de demande de visite)</td></tr>
+<tr><td>Registre unique du personnel</td><td>Onglet « Registre du personnel » de la même Google Sheet (lien dans Réglages)</td></tr>
 <tr><td>Moteur (script Google)</td><td>script.google.com, projet « Recrutement Moule &amp; Smile »</td></tr></table>
 
 <h2>2. Installation (une seule fois, environ 10 minutes)</h2>
@@ -49,7 +50,7 @@ ol li,ul li{margin:3px 0}
 <div class="enc">« Tout le monde » est nécessaire pour que les candidats puissent envoyer leur dossier sans compte Google. Les actions admin (voir les dossiers, modifier, générer un contrat) sont protégées par la clé admin.</div>
 <h3>2.2 Mettre à jour le script plus tard</h3>
 <p>Après avoir modifié Code.gs : <b>Déployer › Gérer les déploiements › ✏️ › Version : Nouvelle version › Déployer</b>. L'adresse /exec ne change pas.</p>
-<div class="enc"><b>Version du script à avoir :</b> celle du <b>19/11/2026</b> (écrit en haut du fichier Code.gs). Elle permet à l'admin de récupérer la photo de l'équipier pour la Pointeuse. Avec une version plus ancienne, l'appli prévient et propose de créer l'équipier sans photo.</div>
+<div class="enc"><b>Version du script à avoir :</b> celle du <b>19/11/2026 (2)</b> (écrit en haut du fichier Code.gs). Elle permet la photo vers la Pointeuse, le registre du personnel et l'envoi des demandes de visite. Avec une version plus ancienne, l'appli prévient (« le script Google n'est pas à jour »).</div>
 <h3>2.3 Première connexion à l'admin</h3>
 <p>Ouvre l'appli admin, tape la clé admin reçue par mail. Elle reste mémorisée sur l'appareil. Pour la changer : exécute la fonction <b>changerCleAdmin</b> dans le script (nouvelle clé envoyée par mail).</p>
 
@@ -59,8 +60,8 @@ ol li,ul li{margin:3px 0}
 <tr><td><b>2. Prise de contact</b></td><td>Appel, SMS ou WhatsApp en un clic. Note la date, le moyen, le résultat.<br><b>Mail de proposition d'entretien pré-écrit</b> : choisis le créneau (et un 2e créneau facultatif) et le lieu (restaurant, téléphone ou visio) ; le texte se remplit tout seul avec le prénom et les dates, tu peux le retoucher. « Ouvrir dans ma messagerie » prépare le mail ; SMS, WhatsApp et Copier envoient le même texte. À l'envoi, l'appli note le contact du jour, le résultat « Entretien proposé » et reporte le 1er créneau dans l'étape Entretien.</td><td>Date du contact</td></tr>
 <tr><td><b>3. Entretien</b></td><td>Date et heure, lieu, bouton « Ajouter à mon agenda » (crée l'événement dans ton Google Agenda). Grille de notes sur 5 : présentation, motivation, expérience, disponibilités, esprit d'équipe, résistance au rush.</td><td>Date de l'entretien</td></tr>
 <tr><td><b>4. Validation</b></td><td>Décision (Retenu / Vivier / Refusé), type de contrat validé, poste, dates, heures, taux horaire, classification. Le salaire mensuel et la période d'essai sont calculés automatiquement. <b>Temps partiel (moins de 35 h)</b> : saisis la répartition des heures par jour (les dispos du candidat sont rappelées) ; sous 24 h, choisis le motif.</td><td>Retenu + type + date de début + date de fin (sauf CDI) + taux ; si temps partiel : répartition = heures du contrat, et motif sous 24 h</td></tr>
-<tr><td><b>5. Contrat</b></td><td>« Préparer le contrat » : aperçu rempli automatiquement › « Enregistrer en PDF dans le Drive » ou « Imprimer ». Puis cocher : signé, DPAE (n° à noter), mutuelle (affiliation ou dispense), registre du personnel, visite médicale, envoi au comptable (mail prêt avec le lien du dossier).</td><td>Contrat PDF + signé + DPAE + mutuelle + autorisation parentale si mineur</td></tr>
-<tr><td><b>6. Tenue donnée</b></td><td>Articles et tailles (la taille demandée par le candidat est reprise), date de remise, « Bon de remise de tenue » en PDF à faire signer.</td><td>Date de remise</td></tr>
+<tr><td><b>5. Contrat</b></td><td>« Préparer le contrat » : aperçu rempli automatiquement › « Enregistrer en PDF dans le Drive » ou « Imprimer ». Une fois signé : « 📷 Photographier / scanner le document signé » (plusieurs photos = un seul PDF, rangé dans le dossier ; la case « signé » se coche). DPAE (n° à noter), mutuelle (affiliation ou dispense). <b>Registre du personnel</b> : inscription automatique dès que contrat signé + DPAE sont cochés. <b>Visite santé au travail</b> : « 📨 Demander la visite » envoie le mail prérempli à ton service de santé au travail, t'en met une copie et range une preuve PDF horodatée dans le dossier. Envoi au comptable : mail prêt avec le lien du dossier.</td><td>Contrat PDF + scan du contrat signé + DPAE + mutuelle + inscription au registre + autorisation parentale si mineur</td></tr>
+<tr><td><b>6. Tenue donnée</b></td><td>Articles et tailles (la taille demandée par le candidat est reprise), date de remise, « Bon de remise de tenue » en PDF à faire signer, puis « 📷 Photographier / scanner le document signé » pour le ranger dans le dossier.</td><td>Date de remise</td></tr>
 <tr><td><b>7. Démarrage</b></td><td>Date et heure du 1er jour, message « premier jour » prêt à envoyer. <b>Bouton « ➕ Créer dans la Pointeuse »</b> : crée l'équipier directement dans l'appli Pointeuse (voir § 3 bis). Check-list : accueil, livret, hygiène/HACCP, sécurité, compte Pointeuse, Planning &amp; RH, accès caisse. Bilan de période d'essai.</td><td>Date du 1er jour + check-list complète › « En poste »</td></tr></table>
 <p>On peut toujours <b>forcer</b> le passage d'étape (l'appli demande confirmation) ou <b>revenir en arrière</b>. Le statut en haut de la fiche (En cours / Vivier / Refusé / Désisté) range le candidat dans le bon onglet. Tout est tracé dans l'<b>Historique</b>.</p>
 <h3>3 bis. Création automatique dans la Pointeuse et Planning &amp; RH</h3>
@@ -69,7 +70,7 @@ ol li,ul li{margin:3px 0}
 <li><b>Postes</b> d'après ses choix (Moules › Moule, Frites › Frite, Bar, Salle, Plonge).</li>
 <li><b>Disponibilités</b> par jour (« toute la journée » = de 6 h à minuit dans Planning) et ses précisions.</li>
 <li><b>Infos RH</b> : téléphone, mail, adresse, n° de Sécurité sociale, salaire mensuel brut, date de début, date de fin (CDD/extra), fin de période d'essai.</li>
-<li>Sa <b>photo</b> (vignette carrée) : elle s'affiche sur l'écran de pointage à la place des initiales. Bouton « 📷 Changer la photo » pour en prendre une autre (elle est aussi rangée dans son dossier Drive).</li>
+<li>Sa <b>photo</b> (entière, sans recadrage) : elle s'affiche sur l'écran de pointage à la place des initiales. Bouton « 📷 Changer la photo » pour en prendre une autre (elle est aussi rangée dans son dossier Drive).</li>
 <li>Le <b>code PIN</b> n'est pas créé : l'équipier le choisit à son premier pointage.</li></ul>
 <p>Le bouton <b>« 🔄 Renvoyer les infos (Planning + photo) »</b> met à jour l'équipier si tu as corrigé la fiche. La première fois sur un appareil, l'appli demande le mot de passe de la Pointeuse (compte tmjumeaux@gmail.com). Si un équipier du même nom existe déjà, l'appli propose de le relier au lieu de créer un doublon. Les cases « Pointeuse » et « Planning &amp; RH » de la check-list se cochent toutes seules. Réglages › « Déconnecter la Pointeuse » retire l'accès d'un appareil.</p>
 <div class="enc">Le type de contrat (CDD, CDI, Extra…) est le même dans les deux applis. Depuis le 19/11/2026, la Pointeuse considère comme <b>temps partiel</b> tout contrat de moins de 35 h/semaine : l'alerte « heures complémentaires » (plus de 10 %) fonctionne donc pour tous les équipiers créés par le recrutement.</div>
@@ -91,6 +92,17 @@ ol li,ul li{margin:3px 0}
 <h3>La DPAE</h3>
 <p>À faire sur due.urssaf.fr ou net-entreprises.fr, au plus tôt 8 jours avant et au plus tard juste avant la prise de poste. Note le numéro dans la fiche : il apparaît dans le contrat.</p>
 
+<h2>4 bis. Registre du personnel, médecine du travail, comptable</h2>
+<h3>Registre unique du personnel</h3>
+<p>Il est tenu sur informatique, dans l'onglet « Registre du personnel » de la Google Sheet : n° d'ordre dans l'ordre des embauches, nom, prénoms, sexe, date de naissance, nationalité, emploi, qualification, dates d'entrée et de sortie, type de contrat, temps partiel, titre de travail pour les étrangers, date d'inscription. L'appli l'inscrit toute seule ; à la fin du contrat, étape Démarrage › « Départ de l'équipier » › date de sortie › « Inscrire la sortie au registre ». Rien n'est jamais effacé : une correction s'ajoute dans « Mentions rectificatives ». Conserve-le 5 ans après le départ du salarié. Ne modifie pas l'onglet à la main (il est protégé par un avertissement).</p>
+<h3>Médecine du travail (visite d'information et de prévention)</h3>
+<ul><li>Adhère d'abord au service de santé au travail de ton secteur (pour Narbonne : le SIST Narbonne), obligatoire dès le premier salarié. Note son e-mail dans Réglages › Employeur.</li>
+<li>Salarié de moins de 18 ans : visite <b>avant</b> qu'il commence. Autres salariés : dans les 3 mois après la prise de poste.</li>
+<li>Saisonnier recruté pour moins de 45 jours de travail effectif : pas de visite individuelle obligatoire ; le service de santé organise des actions de prévention collectives.</li>
+<li>Si ton service utilise un site adhérent pour déclarer les embauches, fais-le là-bas ; le mail de l'appli sert alors de trace.</li></ul>
+<h3>Pourquoi envoyer le dossier au comptable ?</h3>
+<p>C'est lui qui fait les bulletins de paie et la DSN : il a besoin du contrat, de la DPAE, de l'identité, du n° de Sécurité sociale et du RIB pour créer le salarié dans son logiciel de paie. Si un jour tu fais la paie toi-même, cette étape ne sert plus.</p>
+
 <h2>5. Règles et seuils surveillés</h2>
 <table><tr><th>Alerte</th><th>Quand elle s'affiche</th><th>Réglable</th></tr>
 <tr><td>🔴 À contacter</td><td>Candidature non contactée depuis plus de 48 h</td><td>Oui (heures)</td></tr>
@@ -103,6 +115,8 @@ ol li,ul li{margin:3px 0}
 <tr><td>🟠 Mineur</td><td>Candidat de moins de 18 ans (autorisation parentale exigée, alerte si plus de 35 h)</td><td>Non</td></tr>
 <tr><td>🔴 Taux horaire</td><td>Taux saisi inférieur au taux de référence des réglages</td><td>Taux de référence</td></tr>
 <tr><td>🔴 Temps partiel</td><td>CDD de moins de 35 h : répartition par jour manquante ou total différent des heures ; motif obligatoire sous 24 h</td><td>Non</td></tr>
+<tr><td>📄 Scan du contrat signé</td><td>Exigé pour passer l'étape Contrat</td><td>Non</td></tr>
+<tr><td>📒 Registre</td><td>Inscription automatique (contrat signé + DPAE) ; exigée pour passer l'étape Contrat</td><td>Non</td></tr>
 <tr><td>🟠 CDI annualisé</td><td>Tant que l'accord autorisant l'annualisation n'est pas renseigné</td><td>Réglages Employeur</td></tr></table>
 <p>L'onglet <b>⚠️ Urgent</b> du tableau regroupe tous les candidats qui ont au moins une alerte rouge.</p>
 
