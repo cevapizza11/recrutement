@@ -109,7 +109,7 @@ table.pc td{padding:5px 4px;border-bottom:1px solid #242424}
 <body>
 <header>
   <img src="icon.svg" alt="">
-  <div><h1>Recrutement</h1><div class="v">Moule &amp; Smile · v.19/11/2026 16:20</div></div>
+  <div><h1>Recrutement</h1><div class="v">Moule &amp; Smile · v.19/11/2026 16:52</div></div>
   <div class="actions" id="hdrActions">
     <button class="ib" title="Tableau" onclick="vue('liste')">📋</button>
     <button class="ib" title="Ajouter une fiche" onclick="creerFiche()">＋</button>
@@ -968,8 +968,17 @@ function copierPlanning(){
   navigator.clipboard.writeText(t).then(()=>toast('Fiche copiée ✓ — colle-la dans Planning & RH'));
 }
 async function supprimer(){
-  const r=cur();
-  if(!confirm(`Supprimer définitivement la fiche de ${r.candidat.prenom} ${r.candidat.nom} ?\nSon dossier Drive sera mis à la corbeille.`)) return;
+  const r=cur(), nom=`${r.candidat.prenom} ${r.candidat.nom}`, ptId=(r.suivi.demarrage||{}).pointeuseId;
+  if(!confirm(`Supprimer définitivement la fiche de ${nom} ?\nSon dossier Drive sera mis à la corbeille.`)) return;
+  // Pointeuse + Planning : l'équipier est retiré (comme « Retirer » dans ces applis), ses pointages restent dans l'historique
+  if(ptId && ptId!=='demo' && confirm(`${nom} est aussi dans la Pointeuse et Planning & RH.\nL'en retirer également ? (ses pointages éventuels restent dans l'historique)`)){
+    try{
+      if(!(await connecterPointeuse())) return;
+      await pointeuseApp().firestore().collection('employees').doc(ptId).update({active:false});
+      toast('Retiré de la Pointeuse et de Planning ✓');
+    }catch(e){ if(!confirm('Impossible de le retirer de la Pointeuse ('+(e.message||e)+').\nSupprimer quand même la fiche ?')) return; }
+  }
+  if(r.registre&&r.registre.no) alert(`${nom} est inscrit au registre du personnel (n° ${r.registre.no}).\nLa ligne n'est pas effacée automatiquement : un vrai registre ne s'efface jamais.\nSi c'était un essai, supprime-la à la main dans l'onglet « Registre du personnel » de la Google Sheet (ou supprime l'onglet entier avant ta première vraie embauche : il sera recréé vierge).`);
   try{await api('supprimer',{id:r.id});S.candidats=S.candidats.filter(x=>x.id!==r.id);vue('liste');toast('Fiche supprimée');}catch(e){alert(e.message);}
 }
 async function creerFiche(){
