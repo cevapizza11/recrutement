@@ -15,9 +15,14 @@ const _e = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&
 const _d = iso => iso ? iso.slice(0, 10).split('-').reverse().join('/') : '…………';
 const _eur = n => (Math.round(n * 100) / 100).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 const _v = (x, def) => (x === undefined || x === null || x === '') ? (def ?? '…………………') : _e(x);
-function _ne(c) { return c.civilite === 'Mme' ? 'née' : 'né'; }
-function _il(c) { return c.civilite === 'Mme' ? 'la salariée' : 'le salarié'; }
-function _Il(c) { return c.civilite === 'Mme' ? 'La salariée' : 'Le salarié'; }
+// Civilité : 'M.', 'Mme' ou 'NG' (non genré → formulations neutres, pas de civilité imprimée)
+const _ng = c => c.civilite !== 'M.' && c.civilite !== 'Mme';
+function _civ(c) { return _ng(c) ? '' : _e(c.civilite) + ' '; }
+function _ne(c) { return c.civilite === 'Mme' ? 'née' : c.civilite === 'M.' ? 'né' : 'né(e)'; }
+function _il(c) { return c.civilite === 'Mme' ? 'la salariée' : c.civilite === 'M.' ? 'le salarié' : 'la personne salariée'; }
+function _Il(c) { return c.civilite === 'Mme' ? 'La salariée' : c.civilite === 'M.' ? 'Le salarié' : 'La personne salariée'; }
+function _du(c) { return c.civilite === 'Mme' ? 'de la salariée' : c.civilite === 'M.' ? 'du salarié' : 'de la personne salariée'; }
+function _au(c) { return c.civilite === 'Mme' ? 'à la salariée' : c.civilite === 'M.' ? 'au salarié' : 'à la personne salariée'; }
 
 /** Salaire mensuel brut avec majorations HCR des heures au-delà de 35 h
  *  (36e à 39e : +10 % ; 40e à 43e : +20 % ; 44e et + : +50 %). */
@@ -70,7 +75,7 @@ function _parties(D) {
   <p>La société <b>${_v(E.raison)}</b>, ${_v(E.forme)}${E.capital ? ' au capital de ' + _e(E.capital) + ' €' : ''}, dont le siège social est situé ${_v(E.siege)}, immatriculée sous le n° SIRET ${_v(E.siret)}, code NAF ${_v(E.naf)}, exploitant le restaurant à l'enseigne « ${_v(E.enseigne)} », cotisant à l'${_v(E.urssaf)}, représentée par M. ${_v(E.representant)}, en sa qualité de ${_v(E.qualite)},</p>
   <p style="text-align:right">ci-après dénommée « l'employeur »,</p>
   <p><b>ET :</b></p>
-  <p>${_v(c.civilite)} <b>${_v(c.prenom)} ${_v(c.nom)}</b>${c.nomNaissance ? ' (nom de naissance : ' + _e(c.nomNaissance) + ')' : ''}, ${naiss}, de nationalité ${_v(c.nationalite)}, demeurant ${_v(c.adresse)}, ${_v(c.cp)} ${_v(c.ville)}, n° de Sécurité sociale : ${c.secuAttente === 'oui' ? 'en cours d\'attribution' : _v(c.secu)}${c.mineur ? `, mineur(e), agissant avec l'autorisation de son représentant légal, ${_v(c.parentNom)} (${_v(c.parentLien)})` : ''},</p>
+  <p>${_civ(c)}<b>${_v(c.prenom)} ${_v(c.nom)}</b>${c.nomNaissance ? ' (nom de naissance : ' + _e(c.nomNaissance) + ')' : ''}, ${naiss}${c.nationalite ? ', de nationalité ' + _e(c.nationalite) : ''}, demeurant ${_v(c.adresse)}, ${_v(c.cp)} ${_v(c.ville)}, n° de Sécurité sociale : ${c.secuAttente === 'oui' ? 'en cours d\'attribution' : _v(c.secu)}${c.mineur ? `, mineur(e), agissant avec l'autorisation de son représentant légal, ${_v(c.parentNom)} (${_v(c.parentLien)})` : ''},</p>
   <p style="text-align:right">ci-après dénommé(e) « ${_il(c)} »,</p>
   <p><b>IL A ÉTÉ CONVENU CE QUI SUIT :</b></p></div>`;
 }
@@ -109,7 +114,7 @@ const _JOURS = [['lun', 'lundi'], ['mar', 'mardi'], ['mer', 'mercredi'], ['jeu',
 function _clauseTempsPartiel(D, n) {
   const v = D.v, c = D.c, rep = v.repartition || {};
   const lignes = _JOURS.map(([k, l]) => `<tr><td>${l}</td><td>${Number(rep[k]) ? String(rep[k]).replace('.', ',') + ' h' : 'repos'}</td></tr>`).join('');
-  const motif = { demande: `à la demande écrite et motivée ${c.civilite === 'Mme' ? 'de la salariée' : 'du salarié'} (contraintes personnelles ou cumul d'activités), annexée au présent contrat`, etudiant: `${c.civilite === 'Mme' ? 'la salariée' : 'le salarié'} étant étudiant(e) de moins de 26 ans`, court: 'le contrat étant d\'une durée au plus égale à sept jours' }[v.motif24];
+  const motif = { demande: `à la demande écrite et motivée ${_du(c)} (contraintes personnelles ou cumul d'activités), annexée au présent contrat`, etudiant: `${_il(c)} étant étudiant(e) de moins de 26 ans`, court: 'le contrat étant d\'une durée au plus égale à sept jours' }[v.motif24];
   return `<h2>Article ${n} – Travail à temps partiel</h2>
   <p>${_Il(c)} est engagé(e) à <b>temps partiel</b>, pour une durée hebdomadaire de <b>${_v(v.heures)} heures</b>${Number(v.heures) < 24 && motif ? ', inférieure à la durée minimale légale de 24 heures, ' + motif : ''}. Conformément à l'article L.3123-6 du Code du travail, cette durée est répartie entre les jours de la semaine comme suit :</p>
   <table><tr><th>Jour</th><th>Durée</th></tr>${lignes}</table>
@@ -147,7 +152,7 @@ function contratCDDSaison(D) {
   <h2>Article ${n++} – Reconduction</h2>
   <p>${_Il(c)} bénéficiera, le cas échéant, du droit à la reconduction de son contrat pour la saison suivante dans les conditions prévues par l'article L.1244-2 et suivants du Code du travail et par la convention collective HCR. L'employeur l'informera, par tout moyen permettant de conférer date certaine, des conditions de reconduction.</p>
   <h2>Article ${n++} – Rupture anticipée</h2>
-  <p>En dehors de la période d'essai, le contrat ne pourra être rompu avant son terme qu'en cas d'accord des parties, de faute grave, de force majeure, d'inaptitude constatée par le médecin du travail ou à l'initiative ${c.civilite === 'Mme' ? 'de la salariée' : 'du salarié'} qui justifie d'une embauche en contrat à durée indéterminée (article L.1243-1 et suivants du Code du travail).</p>`;
+  <p>En dehors de la période d'essai, le contrat ne pourra être rompu avant son terme qu'en cas d'accord des parties, de faute grave, de force majeure, d'inaptitude constatée par le médecin du travail ou à l'initiative ${_du(c)} qui justifie d'une embauche en contrat à durée indéterminée (article L.1243-1 et suivants du Code du travail).</p>`;
   if (c.mineur) h += _clausesMineur(D, n++);
   h += _commun_fin(D, n);
   return h + _signatures(D);
@@ -204,8 +209,8 @@ function contratCDIAnnualise(D) {
   <p>${_Il(c)} exercera ses fonctions au restaurant « ${_v(E.enseigne)} », ${_v(E.lieu)}.</p>
   <h2>Article ${n++} – Durée du travail aménagée sur l'année</h2>
   <p>Compte tenu du caractère saisonnier de l'activité du restaurant, la durée du travail est organisée sur une période de référence de douze mois, du ${_d(v.refDebut)} au ${_d(v.refFin)}, en application ${E.accordAnnualisation ? 'de ' + _e(E.accordAnnualisation) : 'de l\'accord collectif applicable'} et des articles L.3121-41 et suivants du Code du travail.</p>
-  <p>La durée annuelle de travail est fixée à <b>${annuel} heures</b>, correspondant à une durée hebdomadaire moyenne de ${moy} heures. Les heures sont réparties selon un programme indicatif annuel remis ${c.civilite === 'Mme' ? 'à la salariée' : 'au salarié'}, prévoyant des semaines hautes pendant la saison et des semaines basses ou non travaillées hors saison (notamment de novembre à février). Toute modification du programme ou des horaires sera communiquée au moins 7 jours à l'avance, sauf délai différent prévu par l'accord applicable.</p>
-  <p>Les heures effectuées au-delà de la durée annuelle constituent des heures supplémentaires, décomptées en fin de période de référence et rémunérées ou récupérées conformément aux dispositions légales et conventionnelles. Un relevé des heures est tenu à jour et communiqué ${c.civilite === 'Mme' ? 'à la salariée' : 'au salarié'}.</p>
+  <p>La durée annuelle de travail est fixée à <b>${annuel} heures</b>, correspondant à une durée hebdomadaire moyenne de ${moy} heures. Les heures sont réparties selon un programme indicatif annuel remis ${_au(c)}, prévoyant des semaines hautes pendant la saison et des semaines basses ou non travaillées hors saison (notamment de novembre à février). Toute modification du programme ou des horaires sera communiquée au moins 7 jours à l'avance, sauf délai différent prévu par l'accord applicable.</p>
+  <p>Les heures effectuées au-delà de la durée annuelle constituent des heures supplémentaires, décomptées en fin de période de référence et rémunérées ou récupérées conformément aux dispositions légales et conventionnelles. Un relevé des heures est tenu à jour et communiqué ${_au(c)}.</p>
   <h2>Article ${n++} – Rémunération lissée</h2>
   <p>La rémunération est <b>lissée</b> sur la base de la durée hebdomadaire moyenne de ${moy} heures, indépendamment des heures réellement effectuées chaque mois, soit une rémunération mensuelle brute de <b>${_eur(P.mensuel)}</b> sur la base d'un taux horaire brut de <b>${_eur(v.taux)}</b>${moy > 35 ? ', majorations conventionnelles des heures au-delà de 35 heures incluses' : ''}. En cas d'absence, de départ ou d'arrivée en cours de période, une régularisation sera effectuée selon les règles légales et conventionnelles.</p>
   <h2>Article ${n++} – Avantage en nature nourriture</h2><p>${_Il(c)} bénéficie des repas pris sur place pendant ses heures de présence, conformément à la convention collective HCR. Cet avantage en nature est évalué sur la base du minimum garanti (${_eur(D.P.mg)} par repas à la date du contrat).</p>

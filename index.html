@@ -109,7 +109,7 @@ table.pc td{padding:5px 4px;border-bottom:1px solid #242424}
 <body>
 <header>
   <img src="icon.svg" alt="">
-  <div><h1>Recrutement</h1><div class="v">Moule &amp; Smile · v.19/11/2026 18:46</div></div>
+  <div><h1>Recrutement</h1><div class="v">Moule &amp; Smile · v.23/11/2026 16:30</div></div>
   <div class="actions" id="hdrActions">
     <button class="ib" title="Tableau" onclick="vue('liste')">📋</button>
     <button class="ib" title="Ajouter une fiche" onclick="creerFiche()">＋</button>
@@ -415,10 +415,10 @@ function etapeCandidature(r){
   </div>
   <p style="font-size:12px;color:var(--gris)">Lien de complément : <span style="word-break:break-all">${esc(lienComp)}</span></p>
   <details style="margin-top:8px"><summary style="cursor:pointer;color:var(--or)">Voir / corriger les informations du candidat</summary>
-  <div class="g2">${champ('Civilité','candidat.civilite','select',{choix:[['M.','M.'],['Mme','Mme']]})}${champ('Nom','candidat.nom')}</div>
+  <div class="g2">${champ('Civilité','candidat.civilite','select',{choix:[['M.','M.'],['Mme','Mme'],['NG','Non genré']]})}${champ('Nom','candidat.nom')}</div>
   <div class="g2">${champ('Prénom(s)','candidat.prenom')}${champ('Nom de naissance','candidat.nomNaissance')}</div>
   <div class="g3">${champ('Date de naissance','candidat.naissance','date',{rerender:1})}${champ('Commune de naissance','candidat.lieuNaissance')}${champ('Dépt / pays de naissance','candidat.deptNaissance')}</div>
-  <div class="g2">${champ('Nationalité','candidat.nationalite')}${champ('Type','candidat.nationaliteType','select',{choix:[['fr','Française'],['ue','UE / EEE / Suisse'],['hors_ue','Hors UE']],rerender:1})}</div>
+  <div class="g2">${champ('Nationalité (d’après la pièce d’identité — pour le registre)','candidat.nationalite')}${champ('Type','candidat.nationaliteType','select',{choix:[['sans','Pas de titre de séjour requis'],['fr','Française'],['ue','UE / EEE / Suisse'],['hors_ue','Hors UE (titre de séjour)']],rerender:1})}</div>
   ${c.nationaliteType==='hors_ue'?`<div class="g2">${champ('N° titre de séjour','candidat.sejourNumero')}${champ('Fin de validité','candidat.sejourFin','date',{rerender:1})}</div>`:''}
   ${champ('Adresse','candidat.adresse')}
   <div class="g2">${champ('Code postal','candidat.cp')}${champ('Ville','candidat.ville')}</div>
@@ -610,7 +610,7 @@ function entreeRegistre(r){
   const c=r.candidat, v={...(r.suivi.validation||{})};
   if(v.type==='extra'){const ms=(v.missions||[]).filter(m=>m.date).map(m=>m.date).sort();if(ms.length)v.debut=ms[0];}
   const lib={cdd_saison:'CDD saisonnier',extra:'CDD d\'usage (extra)',cdi_annualise:'CDI'}[v.type]||'';
-  return {nom:(c.nom||'').toUpperCase(),prenoms:c.prenom||'',sexe:c.civilite==='Mme'?'F':'M',naissance:c.naissance||'',nationalite:c.nationalite||'',
+  return {nom:(c.nom||'').toUpperCase(),prenoms:c.prenom||'',sexe:c.civilite==='Mme'?'F':c.civilite==='M.'?'M':'',naissance:c.naissance||'',nationalite:c.nationalite||'',
     emploi:v.poste||'Équipier(ère) polyvalent(e) de restauration',qualification:v.niveau||'',entree:v.debut||'',contrat:lib+(c.mineur?' — salarié mineur':''),
     tempsPartiel:(v.type!=='extra'&&Number(v.heures)<35)?`Oui — ${v.heures} h/semaine`:'Non',
     titre:c.nationaliteType==='hors_ue'?`Titre de séjour n° ${c.sejourNumero||'?'} (valable jusqu'au ${fr(c.sejourFin)})`:''};
@@ -644,7 +644,7 @@ function texteVip(r){
 
 En tant qu'adhérent (${E.raison||''}${E.siret?', SIRET '+E.siret:''}, restaurant « ${E.enseigne||''} », ${E.lieu||''}), je vous informe de l'embauche suivante et vous demande d'organiser la visite d'information et de prévention :
 
-- Salarié : ${c.civilite||''} ${c.prenom||''} ${(c.nom||'').toUpperCase()}
+- Salarié : ${c.civilite&&c.civilite!=='NG'?c.civilite+' ':''}${c.prenom||''} ${(c.nom||'').toUpperCase()}
 - Né(e) le : ${fr(c.naissance)} à ${c.lieuNaissance||''}
 - N° de Sécurité sociale : ${c.secuAttente==='oui'?'en cours d\'attribution':(c.secu||'')}
 - Poste : ${v.poste||'Équipier(ère) polyvalent(e) de restauration'}

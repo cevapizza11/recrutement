@@ -73,7 +73,7 @@ nav.bas .btn{flex:1;max-width:300px;padding:14px}
 <header>
   <img src="icon.svg" alt="">
   <h1>Rejoins l'équipe Moule &amp; Smile</h1>
-  <span class="v">v.19/11/2026 18:46</span>
+  <span class="v">v.23/11/2026 16:30</span>
 </header>
 <main>
   <div id="intro" class="intro"></div>
@@ -108,7 +108,7 @@ nav.bas .btn{flex:1;max-width:300px;padding:14px}
     <h2>2. Ton identité</h2>
     <div class="bloc">
       <label>Civilité <span class="ob">*</span></label>
-      <div class="chips"><label><input type="radio" name="civ" value="M."> M.</label><label><input type="radio" name="civ" value="Mme"> Mme</label></div>
+      <div class="chips"><label><input type="radio" name="civ" value="M."> M.</label><label><input type="radio" name="civ" value="Mme"> Mme</label><label><input type="radio" name="civ" value="NG"> Non genré</label></div>
       <div class="duo">
         <div><label>Nom <span class="ob">*</span></label><input id="nom" autocomplete="family-name"></div>
         <div><label>Prénom(s) <span class="ob">*</span></label><input id="prenom" autocomplete="given-name"></div>
@@ -118,12 +118,9 @@ nav.bas .btn{flex:1;max-width:300px;padding:14px}
         <div><label>Date de naissance <span class="ob">*</span></label><input type="date" id="naissance"></div>
         <div><label>Commune de naissance <span class="ob">*</span></label><input id="lieuNaissance"></div>
       </div>
-      <div class="duo">
-        <div><label>Département ou pays de naissance <span class="ob">*</span></label><input id="deptNaissance" placeholder="Ex. 11 ou Maroc"></div>
-        <div><label>Nationalité <span class="ob">*</span></label><input id="nationalite" placeholder="Ex. Française"></div>
-      </div>
-      <label>Ta nationalité est… <span class="ob">*</span></label>
-      <select id="nationaliteType"><option value="">—</option><option value="fr">Française</option><option value="ue">Union européenne / Suisse / EEE</option><option value="hors_ue">Hors Union européenne</option></select>
+      <label>Département ou pays de naissance <span class="ob">*</span></label><input id="deptNaissance" placeholder="Ex. 11 ou Maroc">
+      <label>As-tu besoin d'un titre de séjour pour travailler en France ? <span class="ob">*</span></label>
+      <select id="nationaliteType"><option value="">—</option><option value="sans">Non</option><option value="hors_ue">Oui, j'ai un titre de séjour</option></select>
       <div id="blocSejour" class="cache">
         <div class="duo">
           <div><label>N° du titre de séjour <span class="ob">*</span></label><input id="sejourNumero"></div>
@@ -370,7 +367,7 @@ function verifier(p){
     for(const [k,l] of JOURS){const d=DISPOS[k]; if(!$('toutDispo').checked && d.m==='p' && (!d.de||!d.a||d.de===d.a)) return 'Vérifie les heures du '+l.toLowerCase()+'.';}
   }
   if(p===1){
-    for(const [id,n] of [['nom','ton nom'],['prenom','ton prénom'],['naissance','ta date de naissance'],['lieuNaissance','ta commune de naissance'],['deptNaissance','ton département ou pays de naissance'],['nationalite','ta nationalité'],['nationaliteType','le type de nationalité']]) if(!$(id).value.trim()) return 'Indique '+n+'.';
+    for(const [id,n] of [['nom','ton nom'],['prenom','ton prénom'],['naissance','ta date de naissance'],['lieuNaissance','ta commune de naissance'],['deptNaissance','ton département ou pays de naissance'],['nationaliteType','si tu as besoin d\'un titre de séjour']]) if(!$(id).value.trim()) return 'Indique '+n+'.';
     if(!radio('civ')) return 'Choisis ta civilité.';
     const a=age(); if(a!==null && a<16) return 'Il faut avoir au moins 16 ans pour travailler chez nous.';
     if(s.horsUE && (!$('sejourNumero').value||!$('sejourFin').value)) return 'Indique le numéro et la date de fin de ton titre de séjour.';
@@ -412,7 +409,7 @@ function dispoResume(){
   if($('toutDispo').checked) return 'Totalement disponible';
   return JOURS.map(([k,l])=>{const d=DISPOS[k];return l.slice(0,3)+' '+(d.m==='j'?'journée':d.m==='n'?'—':d.de+'-'+d.a);}).join(', ');
 }
-const CHAMPS=['contratSouhaite','dispoDebut','dispoFin','dispoDetail','experience','motivation','nom','prenom','nomNaissance','naissance','lieuNaissance','deptNaissance','nationalite','nationaliteType','sejourNumero','sejourFin','pieceType','adresse','cp','ville','tel','email','secu','situation','mutuelleDispense','transport','urgenceNom','urgenceTel','parentNom','parentLien','parentTel','parentEmail','parentAdresse'];
+const CHAMPS=['contratSouhaite','dispoDebut','dispoFin','dispoDetail','experience','motivation','nom','prenom','nomNaissance','naissance','lieuNaissance','deptNaissance','nationaliteType','sejourNumero','sejourFin','pieceType','adresse','cp','ville','tel','email','secu','situation','mutuelleDispense','transport','urgenceNom','urgenceTel','parentNom','parentLien','parentTel','parentEmail','parentAdresse'];
 function collecte(){
   const c={}; CHAMPS.forEach(k=>c[k]=$(k).value.trim());
   c.nom=c.nom.toUpperCase(); c.civilite=radio('civ'); c.taille=radio('taille'); c.postes=cocheesPostes();
@@ -424,7 +421,7 @@ function collecte(){
 }
 function recap(){
   const c=collecte();
-  const l=[['Postes',c.postes.join(', ')],['Contrat',c.contratSouhaite],['Disponible',fr(c.dispoDebut)+(c.dispoFin?' → '+fr(c.dispoFin):'')],['Dans la semaine',dispoResume()],['Identité',`${c.civilite} ${c.prenom} ${c.nom}, né(e) le ${fr(c.naissance)} à ${c.lieuNaissance}`],['Adresse',`${c.adresse}, ${c.cp} ${c.ville}`],['Contact',`${c.tel} — ${c.email}`],['Documents',Object.keys(fichiers).length+' fichier(s)']];
+  const l=[['Postes',c.postes.join(', ')],['Contrat',c.contratSouhaite],['Disponible',fr(c.dispoDebut)+(c.dispoFin?' → '+fr(c.dispoFin):'')],['Dans la semaine',dispoResume()],['Identité',`${c.civilite==='NG'?'':c.civilite+' '}${c.prenom} ${c.nom}, né(e) le ${fr(c.naissance)} à ${c.lieuNaissance}`],['Adresse',`${c.adresse}, ${c.cp} ${c.ville}`],['Contact',`${c.tel} — ${c.email}`],['Documents',Object.keys(fichiers).length+' fichier(s)']];
   $('recap').innerHTML=l.map(([a,b])=>`<div><b>${a} :</b> ${esc(b)}</div>`).join('');
 }
 function fr(d){return d?d.split('-').reverse().join('/'):'';}
