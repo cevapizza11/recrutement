@@ -109,7 +109,7 @@ table.pc td{padding:5px 4px;border-bottom:1px solid #242424}
 <body>
 <header>
   <img src="icon.svg" alt="">
-  <div><h1>Recrutement</h1><div class="v">Moule &amp; Smile · v.25/11/2026 07:45</div></div>
+  <div><h1>Recrutement</h1><div class="v">Moule &amp; Smile · v.25/11/2026 10:58</div></div>
   <div class="actions" id="hdrActions">
     <button class="ib" title="Tableau" onclick="vue('liste')">📋</button>
     <button class="ib" title="Ajouter une fiche" onclick="creerFiche()">＋</button>
@@ -675,7 +675,7 @@ function modaleVip(){
   $('modale').innerHTML=`<div class="modale" onclick="if(event.target===this)fermer()"><div class="boite"><div class="bt"><b>Demande de visite — service de santé au travail</b><button class="ib" onclick="fermer()">✕</button></div><div class="bc">
   ${E.santeTravailEmail?'':'<div class="alerte rouge">Indique l\'e-mail de ton service de santé au travail dans Réglages › Employeur (ou tape-le ci-dessous).</div>'}
   <p style="font-size:12.5px;color:var(--gris)">Le mail part de ton compte Google, tu en reçois une copie, et une preuve PDF horodatée est rangée dans le dossier du candidat. Si ton service passe par son site adhérent, déclare l'embauche là-bas et utilise ce mail comme trace.</p>
-  <label class="l">À</label><input id="vipTo" value="${esc(E.santeTravailEmail||'')}">
+  <label class="l">À</label><input id="vipTo" type="email" autocapitalize="off" autocorrect="off" spellcheck="false" value="${esc(E.santeTravailEmail||'')}">
   <label class="l">Objet</label><input id="vipSujet" value="${esc(t.sujet)}">
   <label class="l">Message</label><textarea id="vipCorps" rows="16">${esc(t.corps)}</textarea></div>
   <div class="bt"><button class="btn plein" id="btnVip" onclick="envoyerVip()">📨 Envoyer la demande</button></div></div></div>`;
