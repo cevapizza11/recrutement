@@ -109,7 +109,7 @@ table.pc td{padding:5px 4px;border-bottom:1px solid #242424}
 <body>
 <header>
   <img src="icon.svg" alt="">
-  <div><h1>Recrutement</h1><div class="v">Moule &amp; Smile · v.23/11/2026 16:30</div></div>
+  <div><h1>Recrutement</h1><div class="v">Moule &amp; Smile · v.25/11/2026 07:45</div></div>
   <div class="actions" id="hdrActions">
     <button class="ib" title="Tableau" onclick="vue('liste')">📋</button>
     <button class="ib" title="Ajouter une fiche" onclick="creerFiche()">＋</button>
@@ -165,7 +165,9 @@ async function charger(){
   $('app').innerHTML='<div class="vide">Chargement…</div>';
   try{
     const j=await api('liste');
-    S.candidats=j.candidats; S.config=j.config; S.sheetUrl=j.sheetUrl; S.driveUrl=j.driveUrl; S.registreUrl=j.registreUrl||'';
+    S.candidats=j.candidats; S.config=j.config;
+    const idUrl=new URLSearchParams(location.search).get('id');
+    if(idUrl && S.candidats.some(c=>c.id===idUrl)){ S.id=idUrl; S.vue='fiche'; history.replaceState(null,'',location.pathname); } S.sheetUrl=j.sheetUrl; S.driveUrl=j.driveUrl; S.registreUrl=j.registreUrl||'';
     rendu();
   }catch(e){
     if(/Clé/.test(e.message)){ localStorage.removeItem('rec_cle'); S.cle=''; return ecranLogin('Clé incorrecte.'); }
